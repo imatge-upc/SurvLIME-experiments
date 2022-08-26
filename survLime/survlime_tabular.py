@@ -119,7 +119,7 @@ class LimeTabularExplainer(object):
         self.train_events = [y[0] for y in target_data]
         self.train_times = [y[1] for y in target_data]
 
-        self.H0_t_ = nelson_aalen_estimator(self.train_events, self.train_times)[0]
+        self.H0_t_ = nelson_aalen_estimator(self.train_events, self.train_times)[1]
         
         # Check and raise proper error in stats are supplied in non-descritized path
         if self.training_data_stats:
@@ -301,7 +301,7 @@ class LimeTabularExplainer(object):
         weights = self.kernel_fn(distances)
         
         # We want to use this to solve the optimization problem
-        return H_i_j_wc, weights, log_correction,  self.H0_t_, scaled_data
+        return H_i_j_wc, weights, log_correction,  self.H0_t_, scaled_data, inverse, distances
 
     
     def _data_inverse(self,
