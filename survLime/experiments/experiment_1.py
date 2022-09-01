@@ -1,15 +1,14 @@
 from typing import List, Union
-
 from functools import partial
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest
 
-from sklearn.model_selection import train_test_split
 from survLime.datasets.load_datasets import RandomSurvivalData
 from survLime import survlime_tabular
 
@@ -21,11 +20,11 @@ def experiment_1():
     
     # Experiment 1.1
     x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(cluster_0[0], cluster_0[1], test_size=0.1, random_state=10)
-    df = experiment([x_train_1, y_train_1], [x_test_1, y_test_1], exp_name='1.1')
+#   df = experiment([x_train_1, y_train_1], [x_test_1, y_test_1], exp_name='1.1')
 
     # Experiment 1.2
     x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(cluster_1[0], cluster_1[1], test_size=0.1, random_state=10)
-    df = experiment([x_train_2, y_train_2], [x_test_2, y_test_2], exp_name='1.2')
+#   df = experiment([x_train_2, y_train_2], [x_test_2, y_test_2], exp_name='1.2')
 
     # Experiment 1.3
     # here we train with all the data but we test it with one cluster at a time
@@ -56,18 +55,19 @@ def experiment(train : List, test : List, model_type : str='cox', exp_name : str
     H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
     explainer = survlime_tabular.LimeTabularExplainer(x_train,
                                                       y_train
-                                                      )
+                                                      , H0)
 
     if exp_name=='1.3':
        x_test = test[0][0]
     computation_exp = compute_weights(explainer, x_test, model)
-    computation_exp.to_csv(f'/home/carlos.hernandez/PhD/SurvLIME/exp_{exp_name}_surv_weights_na.csv', index=False)
+    save_path = f'/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp_{exp_name}_surv_weights.csv' 
+    computation_exp.to_csv(save_path, index=False)
     # These three lines are not pretty but they get the job done
     if exp_name=='1.3':
         exp_name='1.3.2'
         x_test = test[0][1]
         computation_exp = compute_weights(explainer, x_test, model)
-        computation_exp.to_csv(f'/home/carlos.hernandez/PhD/SurvLIME/exp_{exp_name}_surv_weights_na.csv', index=False)
+        computation_exp.to_csv(save_path, index=False)
     return computation_exp
 
 def compute_weights(explainer : survlime_tabular.LimeTabularExplainer, x_test : np.ndarray, model : Union[CoxPHSurvivalAnalysis, RandomSurvivalForest]):
@@ -75,11 +75,9 @@ def compute_weights(explainer : survlime_tabular.LimeTabularExplainer, x_test : 
     num_pat = 1000
     predict_chf = partial(model.predict_cumulative_hazard_function, return_array=True)
     for test_point in tqdm(x_test):
-        import ipdb;ipdb.set_trace()
         b, result= \
                         explainer.explain_instance(test_point, predict_chf, verbose=False, num_samples = num_pat)
 
-        import ipdb;ipdb.set_trace()
         b = [x[0] for x in b]
         compt_weights.append(b)
     columns = ['one','two','threen', 'four', 'five']

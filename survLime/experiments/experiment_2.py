@@ -1,17 +1,16 @@
-from typing import Union
 import argparse
+from typing import Union
 from functools import partial
 
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest
 
-# Our very own survLime!
-from survLime.datasets.load_datasets import Loader 
 from survLime import survlime_tabular
+from survLime.datasets.load_datasets import Loader 
 
 def main(args):
     if args.dataset=='all':
@@ -22,7 +21,7 @@ def main(args):
         loader = Loader(dataset_name=dataset)
         x, events, times = loader.load_data()
 
-        train, val, test = loader.preprocess_datasets(x, events, times, random_seed=args.rs)
+        train, _, test = loader.preprocess_datasets(x, events, times, random_seed=args.rs)
 
         if args.model=='cox':
             model = CoxPHSurvivalAnalysis(alpha=0.0001)
