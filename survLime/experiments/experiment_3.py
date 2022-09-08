@@ -38,10 +38,10 @@ def main(args):
 
         explainer = survlime_tabular.LimeTabularExplainer(train[0],
                                                           train[1],
-                                                          H0=H0)
+                                                                )
 
-        computation_exp = compute_weights(explainer, test[0], model)
-        save_path = f'/home/carlos.hernandez/PhD/SurvLIME/survLime/computed_weights_csv/exp_{dataset}_surv_weights.csv'
+        computation_exp = compute_weights(explainer, test[0], model)  
+        save_path = f'/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp_{dataset}_surv_weights_na.csv'
         computation_exp.to_csv(save_path, index=False)
 
 def compute_weights(explainer : survlime_tabular.LimeTabularExplainer,

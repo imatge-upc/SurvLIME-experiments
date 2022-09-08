@@ -20,7 +20,7 @@ def experiment_1():
     
     # Experiment 1.1
     x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(cluster_0[0], cluster_0[1], test_size=0.1, random_state=10)
-    df = experiment([x_train_1, y_train_1], [x_test_1, y_test_1], exp_name='1.1')
+    df = experiment([x_train_1, y_train_1], [x_test_1, y_test_1], exp_name='1.1', model_type='rsf')
 
     # Experiment 1.2
     x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(cluster_1[0], cluster_1[1], test_size=0.1, random_state=10)
@@ -52,11 +52,12 @@ def experiment(train : List, test : List, model_type : str='cox', exp_name : str
     model.fit(x_train, y_train)
     model.feature_names_in_ = columns 
     
-    H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
+    #H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
     explainer = survlime_tabular.LimeTabularExplainer(x_train,
                                                       y_train
                                                       )
 
+    import ipdb;ipdb.set_trace()
     if exp_name=='1.3':
        x_test = test[0][0]
     computation_exp = compute_weights(explainer, x_test, model)
