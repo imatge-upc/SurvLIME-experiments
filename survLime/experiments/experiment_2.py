@@ -15,19 +15,20 @@ from experiment_1 import create_clusters
 
 
 
-def experiment_2():
+def experiment_2(args):
     
     cluster_0, _ = create_clusters()
     
-    # Experiment 1.1
-    x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(cluster_0[0], cluster_0[1], test_size=0.1, random_state=10)
-    data = []
-    labels = []
-    for i in range(1,6):
-        data = x_train_1[0:100*i]
-        labels = y_train_1[0:100*i]
-        _ = experiment([data, labels], 
-                        [x_test_1, y_test_1], exp_name=f'{i}')
+    for rep in range(args.repetitions):
+        # Experiment 1.1
+        x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(cluster_0[0], cluster_0[1], test_size=0.1, random_state=rep)
+        data = []
+        labels = []
+        for i in range(1,6):
+            data = x_train_1[0:100*i]
+            labels = y_train_1[0:100*i]
+            _ = experiment([data, labels], 
+                            [x_test_1, y_test_1], exp_name=f'{i}_rand_seed_{rep}')
 
 
 def experiment(train : List, test : List, model_type : str='cox', exp_name : str='1.1'):
@@ -53,7 +54,7 @@ def experiment(train : List, test : List, model_type : str='cox', exp_name : str
                                                       y_train
                                                       )
     computation_exp = compute_weights(explainer, x_test, model)
-    save_path = f'/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp_2.{exp_name}_surv_weights_na.csv' 
+    save_path = f'/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp2/exp_2.{exp_name}_surv_weights_na.csv' 
     computation_exp.to_csv(save_path, index=False)
     return computation_exp
 
@@ -73,4 +74,7 @@ def compute_weights(explainer : survlime_tabular.LimeTabularExplainer, x_test : 
     return computation_exp 
 
 if __name__=='__main__':
-    experiment_2()
+    parser = argparse.ArgumentParser(description='Obtain SurvLIME results for experiment 1')
+    parser.add_argument('--repetitions', type=int, default=1, help='How many times to repeat the experiment')
+    args = parser.parse_args()
+    experiment_2(args)
