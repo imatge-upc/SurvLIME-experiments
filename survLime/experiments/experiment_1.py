@@ -24,7 +24,10 @@ def experiment_1(args):
             cluster_0[0], cluster_0[1], test_size=0.1, random_state=i
         )
         df = experiment(
-            [x_train_1, y_train_1], [x_test_1, y_test_1], exp_name=f"1.1_rand_seed_{i}"
+            [x_train_1, y_train_1],
+            [x_test_1, y_test_1],
+            model_type=args.model,
+            exp_name=f"1.1_rand_seed_{i}"
         )
 
         # Experiment 1.2
@@ -32,7 +35,10 @@ def experiment_1(args):
             cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
         )
         df = experiment(
-            [x_train_2, y_train_2], [x_test_2, y_test_2], exp_name=f"1.2_rand_seed_{i}"
+            [x_train_2, y_train_2],
+            [x_test_2, y_test_2],
+            model_type=args.model,
+            exp_name=f"1.2_rand_seed_{i}"
         )
 
         # Experiment 1.3
@@ -48,6 +54,7 @@ def experiment_1(args):
         df = experiment(
             [x_train, y_train],
             [[x_test_1, x_test_2], [y_test_1, y_test_2]],
+            model_type=args.model,
             exp_name=f"1.3_rand_seed_{i}",
         )
 
@@ -81,14 +88,14 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
     if "1.3" in exp_name:
         x_test = test[0][0]
     computation_exp = compute_weights(explainer, x_test, model)
-    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/exp_{exp_name}_surv_weights_na.csv"
+    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/{model_type}_exp_{exp_name}_surv_weights_na.csv"
     computation_exp.to_csv(save_path, index=False)
     # These three lines are not pretty but they get the job done
     if "1.3" in exp_name:
         exp_name = "1.3.2" + exp_name[3:]
         x_test = test[0][1]
         computation_exp = compute_weights(explainer, x_test, model)
-        save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/exp_{exp_name}_surv_weights_na.csv"
+        save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/{model_type}_exp_{exp_name}_surv_weights_na.csv"
         computation_exp.to_csv(save_path, index=False)
     return computation_exp
 
@@ -174,6 +181,12 @@ if __name__ == "__main__":
         type=int,
         default=1,
         help="How many times to repeat the experiment",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="cox",
+        help="Which model to use, either cox or rsf"
     )
     args = parser.parse_args()
     experiment_1(args)
