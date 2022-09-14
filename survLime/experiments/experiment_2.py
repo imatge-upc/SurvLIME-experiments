@@ -1,3 +1,4 @@
+import argparse
 from typing import List, Union
 from functools import partial
 
@@ -9,8 +10,7 @@ from sklearn.model_selection import train_test_split
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest
 
-from survLime.datasets.load_datasets import RandomSurvivalData
-from survLime import survlime_tabular
+from survLime import survlime_explainer
 from experiment_1 import create_clusters
 
 
@@ -50,7 +50,7 @@ def experiment(train : List, test : List, model_type : str='cox', exp_name : str
     model.feature_names_in_ = columns 
     
     H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
-    explainer = survlime_tabular.LimeTabularExplainer(x_train,
+    explainer = survlime_explainer.SurvLimeExplainer(x_train,
                                                       y_train
                                                       )
     computation_exp = compute_weights(explainer, x_test, model)
@@ -58,7 +58,7 @@ def experiment(train : List, test : List, model_type : str='cox', exp_name : str
     computation_exp.to_csv(save_path, index=False)
     return computation_exp
 
-def compute_weights(explainer : survlime_tabular.LimeTabularExplainer, x_test : np.ndarray, model : Union[CoxPHSurvivalAnalysis, RandomSurvivalForest]):
+def compute_weights(explainer : survlime_explainer.SurvLimeExplainer, x_test : np.ndarray, model : Union[CoxPHSurvivalAnalysis, RandomSurvivalForest]):
     compt_weights = []
     num_pat = 1000
     predict_chf = partial(model.predict_cumulative_hazard_function, return_array=True)

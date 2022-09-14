@@ -9,7 +9,7 @@ from tqdm import tqdm
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest
 
-from survLime import survlime_tabular
+from survLime import survlime_explainer
 from survLime.datasets.load_datasets import Loader 
 
 def main(args):
@@ -37,7 +37,7 @@ def main(args):
             times_to_fill = list(set([x[1] for x in train[1]])); times_to_fill.sort()
             H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
 
-            explainer = survlime_tabular.LimeTabularExplainer(train[0],
+            explainer = survlime_explainer.SurvLimeExplainer(train[0],
                                                               train[1],
                                                                     )
 
@@ -45,7 +45,7 @@ def main(args):
             save_path = f'/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp3/exp_{dataset}_surv_weights_na_rand_seed_{i}.csv'
             computation_exp.to_csv(save_path, index=False)
 
-def compute_weights(explainer : survlime_tabular.LimeTabularExplainer,
+def compute_weights(explainer : survlime_explainer.SurvLimeExplainer,
                     x_test : np.ndarray, model : Union[CoxPHSurvivalAnalysis, RandomSurvivalForest]):
     compt_weights = []
     num_pat = 1000
