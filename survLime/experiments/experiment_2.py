@@ -54,7 +54,9 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
     model.feature_names_in_ = columns
 
     H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
-    explainer = survlime_explainer.SurvLimeExplainer(x_train, y_train)
+    explainer = survlime_explainer.SurvLimeExplainer(
+        x_train, y_train, model_output_times=model.event_times_
+    )
     computation_exp = compute_weights(explainer, x_test, model)
     save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp2/exp_2.{exp_name}_surv_weights_na.csv"
     computation_exp.to_csv(save_path, index=False)

@@ -74,7 +74,9 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
     model.feature_names_in_ = columns
 
     # H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
-    explainer = survlime_explainer.SurvLimeExplainer(x_train, y_train)
+    explainer = survlime_explainer.SurvLimeExplainer(
+        x_train, y_train, model_output_times=model.event_times_
+    )
 
     if "1.3" in exp_name:
         x_test = test[0][0]

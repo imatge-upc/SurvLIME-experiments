@@ -40,8 +40,7 @@ def main(args):
             H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
 
             explainer = survlime_explainer.SurvLimeExplainer(
-                train[0],
-                train[1],
+                x_train, y_train, model_output_times=model.event_times_
             )
 
             computation_exp = compute_weights(explainer, test[0], model)
