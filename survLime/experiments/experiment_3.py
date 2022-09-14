@@ -37,14 +37,14 @@ def main(args):
 
             times_to_fill = list(set([x[1] for x in train[1]]))
             times_to_fill.sort()
-            H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
+            #H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
 
             explainer = survlime_explainer.SurvLimeExplainer(
-                x_train, y_train, model_output_times=model.event_times_
+                train[0], train[1], model_output_times=model.event_times_
             )
 
             computation_exp = compute_weights(explainer, test[0], model)
-            save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp3/exp_{dataset}_surv_weights_na_rand_seed_{i}.csv"
+            save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp3/{args.model}_exp_{dataset}_surv_weights_na_rand_seed_{i}.csv"
             computation_exp.to_csv(save_path, index=False)
 
 

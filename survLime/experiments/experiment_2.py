@@ -29,7 +29,10 @@ def experiment_2(args):
             data = x_train_1[0 : 100 * i]
             labels = y_train_1[0 : 100 * i]
             _ = experiment(
-                [data, labels], [x_test_1, y_test_1], exp_name=f"{i}_rand_seed_{rep}"
+                [data, labels],
+                [x_test_1, y_test_1],
+                model_type=args.model,
+                exp_name=f"{i}_rand_seed_{rep}"
             )
 
 
@@ -58,7 +61,7 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
         x_train, y_train, model_output_times=model.event_times_
     )
     computation_exp = compute_weights(explainer, x_test, model)
-    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp2/exp_2.{exp_name}_surv_weights_na.csv"
+    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp2/{model_type}_exp_2.{exp_name}_surv_weights_na.csv"
     computation_exp.to_csv(save_path, index=False)
     return computation_exp
 
@@ -93,6 +96,12 @@ if __name__ == "__main__":
         type=int,
         default=1,
         help="How many times to repeat the experiment",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="cox",
+        help="Which model to use, either cox or rsf"
     )
     args = parser.parse_args()
     experiment_2(args)
