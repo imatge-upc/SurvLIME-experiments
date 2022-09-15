@@ -15,51 +15,58 @@ from survLime import survlime_explainer
 
 
 def experiment_1(args):
+    
+    if args.model != "all":
+        models = [args.model]
+    else:
+        models = ["cox", "rsf"]
+    for model in models:
+        args.model = model
+        for i in range(args.repetitions):
+            cluster_0, cluster_1 = create_clusters()
 
-    for i in range(args.repetitions):
-        cluster_0, cluster_1 = create_clusters()
+            # Experiment 1.1
+            x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
+                cluster_0[0], cluster_0[1], test_size=0.1, random_state=i
+            )
+            df = experiment(
+                [x_train_1, y_train_1],
+                [x_test_1, y_test_1],
+                model_type=args.model,
+                exp_name=f"1.1_rand_seed_{i}"
+            )
 
-        # Experiment 1.1
-        x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
-            cluster_0[0], cluster_0[1], test_size=0.1, random_state=i
-        )
-        df = experiment(
-            [x_train_1, y_train_1],
-            [x_test_1, y_test_1],
-            model_type=args.model,
-            exp_name=f"1.1_rand_seed_{i}"
-        )
+            # Experiment 1.2
+            x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(
+                cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
+            )
+            df = experiment(
+                [x_train_2, y_train_2],
+                [x_test_2, y_test_2],
+                model_type=args.model,
+                exp_name=f"1.2_rand_seed_{i}"
+            )
 
-        # Experiment 1.2
-        x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(
-            cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
-        )
-        df = experiment(
-            [x_train_2, y_train_2],
-            [x_test_2, y_test_2],
-            model_type=args.model,
-            exp_name=f"1.2_rand_seed_{i}"
-        )
-
-        # Experiment 1.3
-        # here we train with all the data but we test it with one cluster at a time
-        X_3 = np.concatenate([cluster_0[0], cluster_1[0]])
-        y_3 = np.concatenate([cluster_0[1], cluster_1[1]])
-        x_train, x_test, y_train, y_test = train_test_split(
-            X_3, y_3, test_size=0.5, random_state=10 * i
-        )
-        x_train, x_test, y_train, y_test = train_test_split(
-            x_train, y_train, test_size=0.1, random_state=i
-        )
-        df = experiment(
-            [x_train, y_train],
-            [[x_test_1, x_test_2], [y_test_1, y_test_2]],
-            model_type=args.model,
-            exp_name=f"1.3_rand_seed_{i}",
-        )
+            # Experiment 1.3
+            # here we train with all the data but we test it with one cluster at a time
+            X_3 = np.concatenate([cluster_0[0], cluster_1[0]])
+            y_3 = np.concatenate([cluster_0[1], cluster_1[1]])
+            x_train, x_test, y_train, y_test = train_test_split(
+                X_3, y_3, test_size=0.5, random_state= i
+            )
+            x_train, x_test, y_train, y_test = train_test_split(
+                x_train, y_train, test_size=0.1, random_state=i
+            )
+            df = experiment(
+                [x_train, y_train],
+                [[x_test_1, x_test_2], [y_test_1, y_test_2]],
+                model_type=args.model,
+                exp_name=f"1.3_rand_seed_{i}",
+                num_neighbours=args.num_neigh
+            )
 
 
-def experiment(train: List, test: List, model_type: str = "cox", exp_name: str = "3.1"):
+def experiment(train: List, test: List, model_type: str = "cox", exp_name: str = "3.1", num_neighbours: int = 1000):
     """
     This is going to be the same for all the experiments, we should define it generally
 
@@ -94,7 +101,7 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
     if "1.3" in exp_name:
         exp_name = "1.3.2" + exp_name[3:]
         x_test = test[0][1]
-        computation_exp = compute_weights(explainer, x_test, model)
+        computation_exp = compute_weights(explainer, x_test, model, num_neighbours)
         save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/{model_type}_exp_{exp_name}_surv_weights_na.csv"
         computation_exp.to_csv(save_path, index=False)
     return computation_exp
@@ -104,16 +111,20 @@ def compute_weights(
     explainer: survlime_explainer.SurvLimeExplainer,
     x_test: np.ndarray,
     model: Union[CoxPHSurvivalAnalysis, RandomSurvivalForest],
+    num_neighbours: int=1000,
 ):
     compt_weights = []
-    num_pat = 1000
+    num_pat = num_neighbours
     predict_chf = partial(model.predict_cumulative_hazard_function, return_array=True)
     for test_point in tqdm(x_test):
-        b, result = explainer.explain_instance(
-            test_point, predict_chf, verbose=False, num_samples=num_pat
-        )
+        try:
+            b, result = explainer.explain_instance(
+                test_point, predict_chf, verbose=False, num_samples=num_pat
+            )
 
-        b = [x[0] for x in b]
+            b = [x[0] for x in b]
+        except:
+            b = [None] * len(test_point)
         compt_weights.append(b)
     columns = ["one", "two", "threen", "four", "five"]
     computation_exp = pd.DataFrame(compt_weights, columns=columns)
@@ -186,7 +197,13 @@ if __name__ == "__main__":
         "--model",
         type=str,
         default="cox",
-        help="Which model to use, either cox or rsf"
+        help="Which model to use, either cox or rsf or both",
+    )
+    parser.add_argument(
+        "--num_neigh",
+        type=int,
+        default=1000,
+        help="Number of neighbours to use for the explanation",
     )
     args = parser.parse_args()
     experiment_1(args)
