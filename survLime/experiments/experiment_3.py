@@ -1,3 +1,8 @@
+import warnings
+warnings.filterwarnings("ignore")
+import matplotlib.pyplot as plt
+import numpy as np
+
 import argparse
 from typing import Union
 from functools import partial
@@ -24,7 +29,7 @@ def main(args):
         models = ["cox", "rsf"]
     for model in models:
         args.model = model
-        for i in range(args.repetitions):
+        for i in tqdm(range(args.repetitions)):
             for dataset in datasets:
                 loader = Loader(dataset_name=dataset)
                 x, events, times = loader.load_data()
@@ -39,7 +44,6 @@ def main(args):
                     raise AssertionError
 
                 model.fit(train[0], train[1])
-                print(f"C-index is - {round(model.score(test[0], test[1]), 3)}")
 
                 times_to_fill = list(set([x[1] for x in train[1]]))
                 times_to_fill.sort()
@@ -85,7 +89,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="veterans",
-        help="either veterans, lungs, udca or pbc",
+        help="either veterans, lungs, udca or pbc, or all",
     )
     parser.add_argument(
         "--model", type=str, default="cox", help="bb model either cox or rsf"

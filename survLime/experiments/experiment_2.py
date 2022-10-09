@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import argparse
 from typing import List, Union
 from functools import partial
@@ -24,7 +27,7 @@ def experiment_2(args):
         models = ["cox", "rsf"]
     for model in models:
         args.model = model
-        for rep in range(args.repetitions):
+        for rep in tqdm(range(args.repetitions)):
             # Experiment 1.1
             x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
                 cluster_0[0], cluster_0[1], test_size=0.1, random_state=rep
@@ -105,7 +108,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--repetitions",
         type=int,
-        default=1,
+        default=100,
         help="How many times to repeat the experiment",
     )
     parser.add_argument(

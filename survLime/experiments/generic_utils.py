@@ -10,7 +10,6 @@ from sklearn.metrics import mean_squared_error
 from sksurv.ensemble import RandomSurvivalForest
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 
-
 def fill_matrix_with_total_times(total_times : list,
                                  predicted_surv : np.ndarray,
                                  event_times : np.ndarray):
