@@ -35,7 +35,7 @@ from derma.general.preprocessing.transformers import (TransformToNumeric,
                                                       CustomImputer)
 
 from derma.general.ingestion.data_loader_csv import SurvivalLoader
-from derma.general.preprocessing.encoders import (OrdinalEncoder,
+from derma.general.preprocessing.encoders import (CustomOrdinalEncoder as OrdinalEncoder,
                                                   GenderEncoder,
                                                   AbsentPresentEncoder,
                                                   LABEncoder,
@@ -49,7 +49,7 @@ np.random.seed(123456)
 get_target = lambda df: df[['event','duration']]
 path = '/home/carlos.hernandez/datasets/csvs/data-surv_20220302.csv'
 
-
+    
 clinical_columns = ['patient_gender', 'patient_eye_color',
        'patient_phototype', 'cutaneous_biopsy_breslow',
        'cutaneous_biopsy_mitotic_index', 'cutaneous_biopsy_ulceration',
@@ -77,6 +77,29 @@ lab_columns = ['Recompte de leucòcits', 'Recompte plaquetes', 'Neutròfils abso
         'Proteïnes totals', 'Beta 2 microglobulina', 'Proteïna S100',
         'Melanoma Inhibitory activity', 'Concentració dhemoglobina']
 
+def obtain_rsf_kwargs(args):
+    if args.event_type=='ss':
+        kwargs = {'n_estimators' : 300,
+                    'min_weight_fraction_leaf': 0,
+                    'min_samples_split' : 11,
+                    'max_features' : 'auto',
+                    'max_depth':10}
+    elif args.event_type=='dfs':
+        kwargs = {'n_estimators' : 500,
+                    'min_weight_fraction_leaf': 0,
+                    'min_samples_split' : 15,
+                    'max_features' : 'sqrt',
+                    'max_depth':11}
+    elif args.event_type=='os':
+        kwargs = {'n_estimators' : 50,
+                    'min_weight_fraction_leaf': 0,
+                    'min_samples_split' : 14,
+                    'max_features' : 'sqrt',
+                    'max_depth':14}
+    return kwargs
+
+
+
 def main(args):
     X, _, time, event = SurvivalLoader(args.event_type).load_data(path)
     X['duration'] = round(time)
@@ -91,7 +114,10 @@ def main(args):
         if args.model == 'cox':
             model_pipe = ('coxph', CoxPHSurvivalAnalysis(alpha=0.0001))
         elif args.model == 'rsf':
-            model_pipe = ('rsf', RandomSurvivalForest(random_state=42))
+            kwargs = obtain_rsf_kwargs(args)
+            model_pipe = ('rsf', RandomSurvivalForest(
+                              **kwargs,
+                              random_state=42))
         else:
             AssertionError('Model not implemented')
 
