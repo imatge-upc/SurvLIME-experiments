@@ -29,8 +29,8 @@ def main(args):
         models = ["cox", "rsf"]
     for model in models:
         args.model = model
-        for i in tqdm(range(args.repetitions)):
-            for dataset in datasets:
+        for dataset in datasets:
+            for i in tqdm(range(args.repetitions)):
                 loader = Loader(dataset_name=dataset)
                 x, events, times = loader.load_data()
 
