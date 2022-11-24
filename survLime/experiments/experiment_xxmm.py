@@ -111,7 +111,7 @@ def main(args):
 #   settings_file.keep_cols = {'cols' : keep_cols}
 
     X_train_previous, X_test, y_train, y_test = train_test_split(X.copy(), np.zeros(len(X)), test_size=0.1, random_state=42)
-    for repetition in tqdm(range(args.repetitions)):
+    for repetition in tqdm(range(48, args.repetitions)):
         try:
             if args.model == 'cox':
                 model_pipe = ('coxph', CoxPHSurvivalAnalysis(alpha=0.0001))
@@ -202,7 +202,7 @@ if __name__ == "__main__":
                         help="os, dfs or ss"
     )
     parser.add_argument(
-        "--model", type=str, default="cox", help="bb model either cox or rsf"
+        "--model", type=str, default="rsf", help="bb model either cox or rsf"
     )
     parser.add_argument(
         "--repetitions",
