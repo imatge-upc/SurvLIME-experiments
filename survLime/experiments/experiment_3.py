@@ -67,7 +67,6 @@ def compute_weights(
     compt_weights = []
     num_pat = num_neighbors
     predict_chf = partial(model.predict_cumulative_hazard_function, return_array=True)
-    import ipdb; ipdb.set_trace()
     for test_point in tqdm(x_test.to_numpy()):
         try:
             b, _ = explainer.explain_instance(
