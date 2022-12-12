@@ -56,12 +56,11 @@ def nested_stratified_split(X, n_splits=4, inner_splits=3, random_state=314):
     return splits_outer
 
 def data_preprocessing(X_train : pd.DataFrame, X_val : pd.DataFrame, X_test : pd.DataFrame,
-         using_dataloaders: False, wsi_dict={}, dermo_dict={}) -> Tuple:
+                       using_dataloaders: False, wsi_dict={'train' : []}, dermo_dict={'train':[]}) -> Tuple:
     """
-    Applies all the necessary transformation for PyCox to be used
+    Applies all the necessary transformation for SKSurv/XGBSE or PyCox to be used
     """
     pipe = obtain_pipeline(settings_file, X_train)
-    
     # Transform the data so we can use it
     X_train_processed = pipe.fit_transform(X_train.copy(), np.zeros(len(X_train)))
     X_val_processed   = pipe.transform(X_val.copy())
