@@ -1,5 +1,11 @@
+"""
+Experiment for the paper: Put name
+
+We measure how does SurvLIME perform when the number of
+neighbours is changed
+"""
 import warnings
-warnings.filterwarnings("ignore")
+#warnings.filterwarnings("ignore")
 
 import argparse
 from typing import List, Union
@@ -13,64 +19,42 @@ from sklearn.model_selection import train_test_split
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest
 
-from survLime.datasets.load_datasets import RandomSurvivalData
-from survLime import survlime_explainer
+from survlime.load_datasets import RandomSurvivalData
+from survlime import survlime_explainer
 
-def experiment_1(args):
+def experiment_neighbours(args):
     
-    if args.model != "all":
-        models = [args.model]
-    else:
-        models = ["cox", "rsf"]
     if args.num_neigh == 'all':
         num_neighbours = [1, 10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000]
     else:
         num_neighbours = [int(args.num_neigh)]
-    for model in models:
-        args.model = model
-        for i in range(args.repetitions):
-            for num_neigh in tqdm(num_neighbours):
-                cluster_0, cluster_1 = create_clusters()
+    model = 'cox'
+    for i in range(args.repetitions):
+        for num_neigh in tqdm(num_neighbours):
+            cluster_1, cluster_2 = create_clusters()
 
-                # Experiment 1.1
-                x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
-                    cluster_0[0], cluster_0[1], test_size=0.1, random_state=i
-                )
-                df = experiment(
-                    [x_train_1, y_train_1],
-                    [x_test_1, y_test_1],
-                    model_type=args.model,
-                    exp_name=f"1.1_rand_seed_{i}"
-                )
-                
-                # Experiment 1.2
-               #x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(
-               #    cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
-               #)
-               #df = experiment(
-               #    [x_train_2, y_train_2],
-               #    [x_test_2, y_test_2],
-               #    model_type=args.model,
-               #    exp_name=f"1.2_rand_seed_{i}"
-               #)
-
-               ## Experiment 1.3
-               ## here we train with all the data but we test it with one cluster at a time
-               #X_3 = np.concatenate([cluster_0[0], cluster_1[0]])
-               #y_3 = np.concatenate([cluster_0[1], cluster_1[1]])
-               #x_train, x_test, y_train, y_test = train_test_split(
-               #    X_3, y_3, test_size=0.5, random_state= i
-               #)
-               #x_train, x_test, y_train, y_test = train_test_split(
-               #    x_train, y_train, test_size=0.1, random_state=i
-               #)
-               #df = experiment(
-               #    [x_train, y_train],
-               #    [[x_test_1, x_test_2], [y_test_1, y_test_2]],
-               #    model_type=args.model,
-               #    exp_name=f"1.3_rand_seed_{i}",
-               #    num_neighbours=num_neigh
-               #)
+            # Experiment cluster 1 
+            x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
+                cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
+            )
+            import ipdb; ipdb.set_trace()
+            df = experiment(
+                [x_train_1, y_train_1],
+                [x_test_1, y_test_1],
+                model_type=args.model,
+                exp_name=f"1.1_rand_seed_{i}"
+            )
+             
+            # Experiment cluster 2
+            x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(
+                cluster_2[0], cluster_2[1], test_size=0.1, random_state=i
+            )
+            df = experiment(
+                [x_train_2, y_train_2],
+                [x_test_2, y_test_2],
+                model_type=args.model,
+                exp_name=f"1.2_rand_seed_{i}"
+            )
 
 
 def experiment(train: List, test: List, model_type: str = "cox", exp_name: str = "3.1", num_neighbours: int = 1000):
@@ -81,34 +65,26 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
     x_train = train[0]
     y_train = train[1]
     x_test = test[0]
-    if model_type == "cox":
-        model = CoxPHSurvivalAnalysis(alpha=0.0001)
-    elif model_type == "rsf":
-        model = RandomSurvivalForest()
-    else:
-        raise AssertionError(f"The model {model_type} needs to be either [cox or rsf]")
+
+    model = CoxPHSurvivalAnalysis(alpha=0.0001)
 
     times_to_fill = list(set([x[1] for x in y_train]))
     times_to_fill.sort()
+
+    events_train = [x[0] for x in y_train]
+    times_train  = [x[1] for x in y_train]
+
     columns = ["one", "two", " three", "four", "five"]
     model.fit(x_train, y_train)
     model.feature_names_in_ = columns
 
     # H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
     explainer = survlime_explainer.SurvLimeExplainer(
-        x_train, y_train, model_output_times=model.event_times_
-    )
-
-    if "1.3" in exp_name:
-        x_test = test[0][0]
-    computation_exp = compute_weights(explainer, x_test, model)
-    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/{model_type}_exp_{exp_name}_surv_weights_na_{num_neighbours}.csv"
-    if "1.3" in exp_name:
-        exp_name = "1.3.2" + exp_name[3:]
-        x_test = test[0][1]
-        computation_exp = compute_weights(explainer, x_test, model, num_neighbours)
-        save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp1/{model_type}_exp_{exp_name}_surv_weights_na_{num_neighbours}.csv"
-        computation_exp.to_csv(save_path, index=False)
+        x_train, events_train, times_train, model_output_times=times_to_fill)
+    
+    for neighbours in range(1, args.num_neigh+2, 20)
+    computation_exp = compute_weights(explainer, x_test, model, num_pat = neighbours)
+    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp_neigh/{model_type}_exp_surv_weights_{num_neighbours}.csv"
     return computation_exp
 
 
@@ -121,17 +97,15 @@ def compute_weights(
     compt_weights = []
     num_pat = num_neighbours
     predict_chf = partial(model.predict_cumulative_hazard_function, return_array=True)
-    for test_point in tqdm(x_test):
-        try:
-            b, result = explainer.explain_instance(
-                test_point, predict_chf, verbose=False, num_samples=num_pat
-            )
+    try:
+        b = explainer.explain_instance(
+            test_point, predict_chf, verbose=False, num_samples=num_pat
+        )
 
-            b = [x[0] for x in b]
-        except:
-            b = [None] * len(test_point)
-        compt_weights.append(b)
-    columns = ["one", "two", "threen", "four", "five"]
+    except:
+        b = [None] * len(test_point)
+    compt_weights.append(b)
+    columns = ["one", "two", "three", "four", "five"]
     computation_exp = pd.DataFrame(compt_weights, columns=columns)
 
     return computation_exp
