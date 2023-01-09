@@ -118,7 +118,6 @@ def main(args):
 
             model.fit(train[0], train[1])
             obtain_c_index(args, dataset, model, test, train, x)
-            continue
 
             if args.model == "cox":
                 model_output_times = model.event_times_
