@@ -24,13 +24,14 @@ from derma.general.preprocessing.transformers import (TransformToNumeric,
                                                       ExponentialTransformer,
                                                       RenameLabValues,
                                                       CustomScaler,
+                                                      FillWith0Transformer,
                                                       CustomImputer)
 from derma.general.preprocessing.encoders import (OrdinalEncoder,
                                                   GenderEncoder,
                                                   AbsentPresentEncoder,
                                                   LABEncoder,
                                                   CategoricalEncoder)
-#import derma.sol.survival.notebooks.config_os as settings_file
+import derma.sol.survival.notebooks.config_os as settings_file
 import derma.sol.survival.notebooks.config_os_marc as settings_file
 
 
@@ -99,6 +100,7 @@ def obtain_pipe(keep_cols : list = None, impute : bool = True):
         ('TransformToNumeric', TransformToNumeric(**settings_file.transform_to_numeric)), 
         ('TransformToDatetime', TransformToDatetime(**settings_file.transform_to_datetime)),
         ('TransformToObject', TransformToObject(**settings_file.transform_to_object)),
+        ('FillWith0', FillWith0Transformer(**settings_file.fill_with_0)),
         ('ComputeAge', ComputeAge(**settings_file.compute_age)),
         ('tr_tm', LinkTumourPartToParent(**settings_file.link_tumour_part_to_parent)),
         ('tr_cb', TransformCbRegression(**settings_file.transform_cb_regression)),
@@ -181,6 +183,7 @@ def obtain_pipeline(settings_file : dict, X_train : pd.DataFrame) -> sklearn.pip
         ('TransformToNumeric', TransformToNumeric(**settings_file.transform_to_numeric)), 
         ('TransformToDatetime', TransformToDatetime(**settings_file.transform_to_datetime)),
         ('TransformToObject', TransformToObject(**settings_file.transform_to_object)),
+        ('FillWith0', FillWith0Transformer(**settings_file.fill_with_0)),
         ('ComputeAge', ComputeAge(**settings_file.compute_age)),
         ('tr_tm', LinkTumourPartToParent(**settings_file.link_tumour_part_to_parent)),
         ('tr_cb', TransformCbRegression(**settings_file.transform_cb_regression)),

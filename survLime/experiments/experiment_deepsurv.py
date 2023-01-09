@@ -21,6 +21,7 @@ from sklearn.model_selection import KFold, train_test_split
 import wandb
 import sklearn
 
+
 from derma.general.ingestion.data_loader_csv import SurvivalLoader
 
 
@@ -45,7 +46,13 @@ from derma.general.preprocessing.encoders import (OrdinalEncoder,
                                                   CategoricalEncoder)
 
 import config_os as settings_file
-from survLime import survlime_explainer
+import derma.sol.survival.notebooks.config_os_marc as settings_file
+from survlime.survlime_explainer import SurvLimeExplainer
+
+# Seeds for reproducibility and good harvest
+import torch
+np.random.seed(1234)
+_ = torch.manual_seed(1234)
 
 def train_model(args, batch_norm, batch_size, callbacks, data, dropout, epochs, get_target, in_features, label, num_nodes, out_features, output_bias, y_test, y_train, y_val):
     """ Documentation train loop
@@ -58,6 +65,8 @@ def train_model(args, batch_norm, batch_size, callbacks, data, dropout, epochs, 
     dropout: Dropout to use
     """
     y_train = get_target(label[0])
+
+    import ipdb;ipdb.set_trace()
     y_val   = get_target(label[1])
 
     # Transform data into numpy arrays
@@ -126,13 +135,15 @@ def main(args):
         labels = []
         X_train, X_val, y_train, y_val = train_test_split(X_train_first.copy(), y_train_first, test_size=0.2, random_state=repetition)
         X_train_t = pipe.fit_transform(X_train.copy(), y_train)
-        
         X_val_t   = pipe.transform(X_val.copy())
         X_test_t  = pipe.transform(X_test.copy())   
 
         splits.append([X_train_t, X_val_t, X_test_t])
         labels.append([y_train, y_val, y_test])
         in_features = X_train_t.shape[1]
+
+        # print the shape of X_train_t X_val_t X_test_t
+        print(X_train_t.shape, X_val_t.shape, X_test_t.shape)
 
         if args.num_layers==1:
             num_nodes = [args.num_nodes]
@@ -159,10 +170,16 @@ def main(args):
         y_train_fixed = (y_train[0], [True if x==1 else False for x in y_train[1]])
         unique_times = list(set(train_times))
         unique_times.sort()
-
-        explainer = survlime_explainer.SurvLimeExplainer(X_train_t, y_train_fixed,
-                                                         model_output_times=unique_times)
         
+        explainer = SurvLimeExplainer(
+                training_features=X_train_t,
+                training_times=y_train_fixed[0],
+                traininig_events=y_train_fixed[1],
+                model_output_times=unique_times,
+                sample_around_instance=False,
+                random_state=10,
+        )
+
         computation_exp = compute_weights(explainer, data[2], model, num_neighbors = 1000)
         computation_exp.columns = X_train_t.columns
 
@@ -176,7 +193,7 @@ def main(args):
     print("#" * 100)
 
 def compute_weights(
-    explainer: survlime_explainer.SurvLimeExplainer,
+    explainer: SurvLimeExplainer,
     x_test: np.ndarray,
     model: None,
     num_neighbors: int = 1000,
@@ -192,14 +209,14 @@ def compute_weights(
     num_pat = num_neighbors
     predict_chf = model.predict_cumulative_hazards
     for test_point in tqdm(x_test.values):
+        import ipdb; ipdb.set_trace()
         try:
-            b, _ = explainer.explain_instance(
+            b = explainer.explain_instance(
                 test_point, predict_chf, verbose=False, num_samples=num_pat
             )
-
-            b = [x[0] for x in b]
         except:
-            print('bad yuyu')
+            import traceback
+            print(traceback.print_exc())
             b = [None] * len(test_point)
         compt_weights.append(b)
 

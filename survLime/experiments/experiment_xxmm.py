@@ -20,8 +20,8 @@ from xgbse._kaplan_neighbors import DEFAULT_PARAMS
 from xgbse.metrics import concordance_index
 
 # Our very own survLime!
-from survlime.survlime_explainer import SurvLimeExplainer
-from survlime import survlime_explainer
+from survlimepy import SurvLimeExplainer
+#from survlime import survlime_explainer
 from functools import partial
 
 from derma.general.ingestion.data_loader_csv import SurvivalLoader
@@ -119,7 +119,7 @@ def main(args):
                                                         using_dataloaders=False)
             break 
 
-    for repetition in tqdm(range(args.repetitions)):
+    for repetition in tqdm(range(1, args.repetitions)):
         try:
 
             if already_trained:
@@ -133,7 +133,8 @@ def main(args):
                     model_pipe = model_pipe[1].fit(X_train_t, y_train)
                     X_train_model = X_train_t
                 if args.model == 'xgbse':
-                    c_index = concordance_index(y_test, model_pipe.predict(X_test_t))
+                    X_test_model = pd.DataFrame(X_test_t, columns=columns)
+                    c_index = concordance_index(y_test, model_pipe.predict(X_test_model))
                     print(c_index)
                 already_trained=True
 
@@ -151,10 +152,9 @@ def main(args):
             num_neighbors = args.num_neigh
             explainer = SurvLimeExplainer(
                     training_features=X_train_model,
-                    traininig_events=[tp[0] for tp in y_train],
+                    training_events=[tp[0] for tp in y_train],
                     training_times=[tp[1] for tp in y_train],
                     model_output_times=model_output_times,
-                    sample_around_instance=True,
                     random_state=10,
             )
 
@@ -163,7 +163,7 @@ def main(args):
                                               , column_names = columns,
                                               predict_chf = predict_chf
                                               )
-            save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp4/{args.event_type}/{args.model}_xxmm_surv_{args.event_type}_weights_rand_seed_{repetition}.csv"
+            save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/expxxmm_met/{args.event_type}/{args.model}_xxmm_surv_{args.event_type}_weights_rand_seed_{repetition}.csv"
             computation_exp.to_csv(save_path, index=False)
         except:
             print('Error in repetition', repetition)
@@ -173,7 +173,7 @@ def main(args):
             pass
 
 def compute_weights(
-    explainer: survlime_explainer.SurvLimeExplainer,
+    explainer: SurvLimeExplainer,
     x_test:  pd.DataFrame,
     model: CoxPHSurvivalAnalysis,
     num_neighbors: int = 1000,
@@ -183,15 +183,11 @@ def compute_weights(
     compt_weights = []
     num_pat = num_neighbors
     for test_point in tqdm(x_test):
-        try:
-            b = explainer.explain_instance(
-                test_point, predict_chf, verbose=False, num_samples=num_pat
-            )
+        b = explainer.explain_instance(
+            test_point, predict_chf, verbose=False, num_samples=num_pat
+        )
 
-            compt_weights.append(b)
-        except:
-            b = [None] * len(test_point)
-            compt_weights.append(b)
+        compt_weights.append(b)
 
     return pd.DataFrame(compt_weights, columns=column_names)
 

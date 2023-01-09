@@ -30,7 +30,7 @@ from script_utils import (nested_stratified_split,
                           data_preprocessing)
 
 import config_os as settings_file
-from survlime.survlime_explainer import SurvLimeExplainer
+from survlimepy import SurvLimeExplainer
 
 
 import torch
@@ -200,7 +200,7 @@ def main(args):
                 training_times=y_train_fixed[0],
                 H0= chosen_H0,
                 model_output_times=model_output_times,
-                sample_around_instance=True,
+               #sample_around_instance=True,
                 random_state=10,
         )
         computation_exp = compute_weights(explainer, data[2][:371], model,
