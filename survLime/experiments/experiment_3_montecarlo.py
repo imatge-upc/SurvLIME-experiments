@@ -167,7 +167,6 @@ def exp_real_datasets(args, directly=False):
             model, predict_chf, type_fn = obtain_model(args, model, dataset)
             model.fit(train[0], train[1])
             obtain_c_index(args, dataset, model, test, train)
-            continue
             model_output_times = obtain_output_times(args, model)
 
             events_train = [1 if x[0] else 0 for x in train[1]]
@@ -180,16 +179,27 @@ def exp_real_datasets(args, directly=False):
                     model_output_times=model_output_times,
                     random_state=10,
             )
-            # Obtain explanations 
-            for i in tqdm(range(args.repetitions)):
-                computation_exp = compute_weights(explainer, 
-                                                  test[0].astype('float32'),
-                                                  predict_chf = predict_chf,
-                                                  column_names = test[0].columns,
-                                                  num_neighbors = args.num_neigh,
-                                                type_fn = type_fn)
-                save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp3/{args.model}_exp_{dataset}_surv_weights_na_rand_seed_{i}.csv"
-                computation_exp.to_csv(save_path, index=False)
+            computation_exp = explainer.montecarlo_explanation(data=test[0],
+                                                               predict_fn=predict_chf,
+                                                               type_fn=type_fn,
+                                                               num_samples=1000,
+                                                               num_repetitions=1
+                                                               )
+            # transform computation_exp to dataframe
+            computation_exp = pd.DataFrame(computation_exp, columns=test[0].columns)
+            save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp3_montecarlo/{args.model}_exp_{dataset}_surv_weights.csv"
+            computation_exp.to_csv(save_path, index=False)
+
+            computation_exp = explainer.montecarlo_explanation(data=test[0],
+                                                               predict_fn=predict_chf,
+                                                               type_fn=type_fn,
+                                                               num_samples=1000,
+                                                               num_repetitions=args.repetitions
+                                                               )
+            # transform computation_exp to dataframe
+            computation_exp = pd.DataFrame(computation_exp, columns=test[0].columns)
+            save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp3_montecarlo/{args.model}_exp_{dataset}_surv_weights.csv"
+            computation_exp.to_csv(save_path, index=False)
 
 def compute_weights(
     explainer: SurvLimeExplainer,

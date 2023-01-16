@@ -1,5 +1,5 @@
 """
-Experiment for the paper: Put name
+Experiment for the paper: SurvLIMEpy
 
 We measure how does SurvLIME perform when the number of
 neighbours is changed
@@ -19,42 +19,36 @@ from sklearn.model_selection import train_test_split
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import RandomSurvivalForest
 
-from survlime.load_datasets import RandomSurvivalData
-from survlime import survlime_explainer
+from survlimepy.load_datasets import RandomSurvivalData
+from survlimepy import SurvLimeExplainer
 
-def experiment_neighbours(args):
+def experiment_1(args):
     
-    if args.num_neigh == 'all':
-        num_neighbours = [1, 10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000]
-    else:
-        num_neighbours = [int(args.num_neigh)]
-    model = 'cox'
     for i in range(args.repetitions):
-        for num_neigh in tqdm(num_neighbours):
-            cluster_1, cluster_2 = create_clusters()
+        cluster_1, cluster_2 = create_clusters()
 
-            # Experiment cluster 1 
-            x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
-                cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
-            )
-            import ipdb; ipdb.set_trace()
-            df = experiment(
-                [x_train_1, y_train_1],
-                [x_test_1, y_test_1],
-                model_type=args.model,
-                exp_name=f"1.1_rand_seed_{i}"
-            )
-             
-            # Experiment cluster 2
-            x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(
-                cluster_2[0], cluster_2[1], test_size=0.1, random_state=i
-            )
-            df = experiment(
-                [x_train_2, y_train_2],
-                [x_test_2, y_test_2],
-                model_type=args.model,
-                exp_name=f"1.2_rand_seed_{i}"
-            )
+        # Experiment cluster 1 
+        x_train_1, x_test_1, y_train_1, y_test_1 = train_test_split(
+            cluster_1[0], cluster_1[1], test_size=0.1, random_state=i
+        )
+        df = experiment(
+            [x_train_1, y_train_1],
+            [x_test_1, y_test_1],
+            model_type=args.model,
+            exp_name=f"1.1_rand_seed_{i}"
+        )
+         
+        # Experiment cluster 2
+        x_train_2, x_test_2, y_train_2, y_test_2 = train_test_split(
+            cluster_2[0], cluster_2[1], test_size=0.1, random_state=i
+        )
+
+        df = experiment(
+            [x_train_2, y_train_2],
+            [x_test_2, y_test_2],
+            model_type=args.model,
+            exp_name=f"1.2_rand_seed_{i}"
+        )
 
 
 def experiment(train: List, test: List, model_type: str = "cox", exp_name: str = "3.1", num_neighbours: int = 1000):
@@ -74,22 +68,22 @@ def experiment(train: List, test: List, model_type: str = "cox", exp_name: str =
     events_train = [x[0] for x in y_train]
     times_train  = [x[1] for x in y_train]
 
-    columns = ["one", "two", " three", "four", "five"]
+    columns = ["One", "Two", " Three", "Four", "Five"]
     model.fit(x_train, y_train)
     model.feature_names_in_ = columns
 
-    # H0 = model.cum_baseline_hazard_.y.reshape(len(times_to_fill), 1)
-    explainer = survlime_explainer.SurvLimeExplainer(
-        x_train, events_train, times_train, model_output_times=times_to_fill)
+    explainer = SurvLimeExplainer(
+        x_train, events_train, times_train,
+        model_output_times=times_to_fill)
     
-    for neighbours in range(1, args.num_neigh+2, 20)
-    computation_exp = compute_weights(explainer, x_test, model, num_pat = neighbours)
-    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/computed_weights_csv/exp_neigh/{model_type}_exp_surv_weights_{num_neighbours}.csv"
+    computation_exp = compute_weights(explainer, x_test, model)
+    save_path = f"/home/carlos.hernandez/PhD/survlime-paper/survLime/ \
+        computed_weights_csv/exp_{exp_name}_surv_weights.csv"
+    
     return computation_exp
 
-
 def compute_weights(
-    explainer: survlime_explainer.SurvLimeExplainer,
+    explainer: SurvLimeExplainer,
     x_test: np.ndarray,
     model: Union[CoxPHSurvivalAnalysis, RandomSurvivalForest],
     num_neighbours: int=1000,
@@ -97,19 +91,16 @@ def compute_weights(
     compt_weights = []
     num_pat = num_neighbours
     predict_chf = partial(model.predict_cumulative_hazard_function, return_array=True)
-    try:
+    for test_point in tqdm(x_test):
         b = explainer.explain_instance(
             test_point, predict_chf, verbose=False, num_samples=num_pat
         )
 
-    except:
-        b = [None] * len(test_point)
     compt_weights.append(b)
     columns = ["one", "two", "three", "four", "five"]
     computation_exp = pd.DataFrame(compt_weights, columns=columns)
-
+    
     return computation_exp
-
 
 def create_clusters():
     """
@@ -177,11 +168,6 @@ if __name__ == "__main__":
         type=str,
         default="cox",
         help="Which model to use, either cox or rsf or both",
-    )
-    parser.add_argument(
-        "--num_neigh",
-        default=1000,
-        help="Number of neighbours to use for the explanation",
     )
     args = parser.parse_args()
     experiment_1(args)
