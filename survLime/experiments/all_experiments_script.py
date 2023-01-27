@@ -4,35 +4,53 @@ of the paper "SurvLIMEpy: A Python package implementing SurvLIME"
 """
 import argparse
 import os
-import copy
 
+from make_plots_script import (generate_plots_real_datasets,
+                             generate_deepmodels_rds_plots,
+                            generate_plots_simulated_experiments)
 from experiment_1_montecarlo import experiment_1_cluster_1
 from experiment_1_2_montecarlo import experiment_1_cluster_2
 from experiment_real_datasets_dl import exp_real_datasets_dl
 from experiment_real_datasets_ml import exp_real_datasets
 from deepsurv_rds import deepsurv_rds
 
-results_folder = os.path.join(os.path.dirname(os.getcwd()), "computed_weights_csv", "exp2")
+if not os.path.exists('figures'):
+    os.mkdir('figures')
 
 def execute_experiment(args):
     if args.exp == 'simulated':
-        experiment_1_cluster_1()
-        experiment_1_cluster_2()
-        deepsurv_rds(args)
+      # experiment_1_cluster_1()
+      # experiment_1_cluster_2()
+      # deepsurv_rds(args)
+        generate_deepmodels_rds_plots()
+        generate_plots_simulated_experiments()
     elif args.exp == 'real':
         exp_real_datasets(args)
         exp_real_datasets_dl(args)
+        generate_plots_real_datasets()
     elif args.exp =="all":
         experiment_1_cluster_1()
         experiment_1_cluster_2()
+        deepsurv_rds(args)
+        generate_deepmodels_rds_plots()
+
         exp_real_datasets(args)
         exp_real_datasets_dl(args)
-        deepsurv_rds(args)
+        generate_plots_real_datasets()
+    elif args.exp =='only_plot':
+        # Falta el codigo que usaste para plotear el EXP 1!
+        generate_plots_simulated_experiments()
+        generate_plots_real_datasets()
+        generate_deepmodels_rds_plots()
 
-# Create a class named exp_params that contains the parameters of the experiment
+
+
 class exp_params:
+    """
+    Class to store the hyper-parameters of the experiments for all the models
+    """
     def __init__(self) -> None:
-        self.repetitions=1
+        self.repetitions=100
 
         self.lr = 0.01
         self.reg = 0.1
@@ -62,7 +80,9 @@ class exp_params:
 
         
 if __name__ == "__main__":
-    # add argparse argument being the number of the experiment
+    """
+    Main function to execute the experiments
+    """
     parser = argparse.ArgumentParser(
         description="Choose the experiment"
     )

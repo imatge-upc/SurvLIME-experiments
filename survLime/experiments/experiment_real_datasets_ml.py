@@ -207,19 +207,18 @@ def exp_real_datasets(args_org):
                 model_output_times=model_output_times,
                 random_state=10,
             )
-
-         #  computation_exp = explainer.montecarlo_explanation(
-         #      data=test[0],
-         #      predict_fn=predict_chf,
-         #      type_fn=type_fn,
-         #      num_samples=1000,
-         #      num_repetitions=args.repetitions,
-         #  )
-         #  file_name = f"{model_name}_exp_{dataset}_surv_weights.csv"
-         #  file_directory = os.path.join(save_dir, file_name)
-         #  # transform computation_exp to dataframe
-         #  computation_exp = pd.DataFrame(computation_exp, columns=test[0].columns)
-         #  computation_exp.to_csv(file_directory, index=False)
+            computation_exp = explainer.montecarlo_explanation(
+                data=test[0],
+                predict_fn=predict_chf,
+                type_fn=type_fn,
+                num_samples=1000,
+                num_repetitions=args.repetitions,
+            )
+            file_name = f"{model_name}_exp_{dataset}_surv_weights.csv"
+            file_directory = os.path.join(save_dir, file_name)
+            # transform computation_exp to dataframe
+            computation_exp = pd.DataFrame(computation_exp, columns=test[0].columns)
+            computation_exp.to_csv(file_directory, index=False)
 
 
 if __name__ == "__main__":
