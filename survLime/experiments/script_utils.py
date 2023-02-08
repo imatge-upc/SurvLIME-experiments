@@ -35,6 +35,14 @@ import derma.sol.survival.notebooks.config_os as settings_file
 import derma.sol.survival.notebooks.config_os_marc as settings_file
 
 
+## Xgboost imports
+import xgboost as xgb
+from xgbse.metrics import concordance_index
+from xgbse.converters import (
+    convert_data_to_xgb_format,
+    convert_to_structured
+)
+
 
 path = '/home/carlos.hernandez/datasets/csvs/data-surv_20220302.csv'
 
@@ -202,3 +210,40 @@ def obtain_pipeline(settings_file : dict, X_train : pd.DataFrame) -> sklearn.pip
         ])
 
     return pipe
+
+
+
+def use_xgboost(data : list, labels : list, args : float) -> float:
+    """Use XGBoost to predict survival"""
+
+    y_train = convert_to_structured(labels[0]['duration'], labels[0]['event'])
+    y_val = convert_to_structured(labels[1]['duration'], labels[1]['event'])
+    y_test = convert_to_structured(labels[2]['duration'], labels[2]['event'])
+    PARAMS_XGB_AFT = {
+        'objective': 'survival:aft',
+        'eval_metric': 'aft-nloglik',
+        'aft_loss_distribution': args.aft_loss_distribution,
+        'aft_loss_distribution_scale': args.aft_loss_distribution_scale,
+        'tree_method': 'hist', 
+        'learning_rate': args.lr, 
+        'max_depth': args.max_depth,
+        'alpha': args.alpha,
+        'booster':'dart',
+        'subsample':0.5,
+        'min_child_weight': args.min_child_weight,
+        'colsample_bynode':0.5
+    }
+    # converting to xgboost format
+    dtrain = convert_data_to_xgb_format(data[0], y_train, 'survival:aft')
+    dval = convert_data_to_xgb_format(data[1], y_val, 'survival:aft')
+
+    bst = xgb.train(
+            PARAMS_XGB_AFT, dtrain,
+            num_boost_round=200,
+             verbose_eval=0
+        )
+    dtest = convert_data_to_xgb_format(data[2], y_test, 'survival:aft')
+
+    preds = bst.predict(dtest)
+    score = concordance_index(y_test, -preds, risk_strategy='precomputed')
+    return score
