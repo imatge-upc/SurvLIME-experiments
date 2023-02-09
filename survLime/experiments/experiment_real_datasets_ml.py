@@ -183,6 +183,18 @@ def exp_real_datasets(args_org):
             # Load and pre-process data
             loader = Loader(dataset_name=dataset)
             x, events, times = loader.load_data()
+            if dataset=='lung':
+                """
+                We remove the column meal.cal as it has many missing values
+                we remove any row with missing values of the LUNG dataset
+                """
+                x['event'] = events
+                x['time'] = times
+                x.drop('inst', axis=1, inplace=True)
+                x.drop('meal.cal', axis=1, inplace=True)
+                x.dropna(inplace=True)
+                events = x.pop('event')
+                times = x.pop('time')
             train, test = loader.preprocess_datasets(x, events, times, random_seed=0)
 
             # Obtain model and compute c-index
@@ -191,10 +203,12 @@ def exp_real_datasets(args_org):
 
                 for val, name in zip(model_params.values(), model_params.keys()):
                     setattr(args, name, val)
-
             model, predict_chf, type_fn = obtain_model(args, model_name)
             model.fit(train[0], train[1])
             obtain_c_index(model_name, dataset, model, test, train)
+                
+            # Drop rows in the dataframe train[0] with 3 or more nan values
+
 
             model_output_times = obtain_output_times(model_name, model)
             events_train = [1 if x[0] else 0 for x in train[1]]
@@ -203,7 +217,6 @@ def exp_real_datasets(args_org):
                 training_features=train[0],
                 training_events=[True if x == 1 else False for x in events_train],
                 training_times=times_train,
-                kernel_width=0.001,
                 model_output_times=model_output_times,
                 random_state=10,
             )
