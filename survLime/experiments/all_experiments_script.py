@@ -19,24 +19,26 @@ if not os.path.exists('figures'):
 
 def execute_experiment(args):
     if args.exp == 'simulated':
-      # experiment_1_cluster_1()
-      # experiment_1_cluster_2()
-      # deepsurv_rds(args)
+        #deepsurv_rds(args)
+        experiment_1_cluster_1(args)
+        experiment_1_cluster_2(args)
         generate_deepmodels_rds_plots()
         generate_plots_simulated_experiments()
     elif args.exp == 'real':
         exp_real_datasets(args)
-        exp_real_datasets_dl(args)
+      # exp_real_datasets_dl(args)
         generate_plots_real_datasets()
     elif args.exp =="all":
-        experiment_1_cluster_1()
-        experiment_1_cluster_2()
-        deepsurv_rds(args)
-        generate_deepmodels_rds_plots()
+        experiment_1_cluster_1(args)
+        experiment_1_cluster_2(args)
 
+        generate_plots_simulated_experiments()
         exp_real_datasets(args)
         exp_real_datasets_dl(args)
         generate_plots_real_datasets()
+
+        deepsurv_rds(args)
+        generate_deepmodels_rds_plots()
     elif args.exp =='only_plot':
         # Falta el codigo que usaste para plotear el EXP 1!
         generate_plots_simulated_experiments()
@@ -50,7 +52,7 @@ class exp_params:
     Class to store the hyper-parameters of the experiments for all the models
     """
     def __init__(self) -> None:
-        self.repetitions=100
+        self.repetitions=10
 
         self.lr = 0.01
         self.reg = 0.1
