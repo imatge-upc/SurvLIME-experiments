@@ -147,7 +147,7 @@ def models_and_datasets(args):
 
 def exp_real_datasets_dl(args_org):
     args = copy.deepcopy(args_org)
-    save_dir = os.path.join(os.path.dirname(os.getcwd()), "computed_weights_csv", "exp_real_datasets")
+    save_dir = os.path.join(os.getcwd(), "computed_weights_csv", "exp_real_datasets")
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
