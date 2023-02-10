@@ -144,7 +144,7 @@ def deepsurv_rds(args):
     )
 
     #import ipdb;ipdb.set_trace()
-    save_dir = os.path.join(os.path.dirname(os.getcwd()), "computed_weights_csv", "exp_deepsurv_rds")
+    save_dir = os.path.join(os.getcwd(), "computed_weights_csv", "exp_deepsurv_rds")
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     file_name = f"exp_deepsurv_rds_surv_weights.csv"
