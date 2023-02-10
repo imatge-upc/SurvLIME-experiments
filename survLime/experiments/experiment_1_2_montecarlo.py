@@ -38,6 +38,21 @@ def save_mid_experiment(coeff_max_distance, coeff_mean_distance, coeff_min_dista
     df_to_save_mean = pd.DataFrame(coeff_mean_distance_np, columns=col_names)
     df_to_save_max = pd.DataFrame(coeff_max_distance_np, columns=col_names)
 
+    if not os.path.exists(file_directory_min):
+        df_load_min = pd.DataFrame(columns=col_names)
+    else:
+        df_load_min = pd.read_csv(file_directory_min)
+
+    if not os.path.exists(file_directory_mean):
+        df_load_mean = pd.DataFrame(columns=col_names)
+    else:
+        df_load_mean = pd.read_csv(file_directory_mean)
+
+    if not os.path.exists(file_directory_max):
+        df_load_max = pd.DataFrame(columns=col_names)
+    else:
+        df_load_max = pd.read_csv(file_directory_max)
+
     df_load_min = pd.read_csv(file_directory_min)
     df_load_mean = pd.read_csv(file_directory_mean)
     df_load_max = pd.read_csv(file_directory_max)
