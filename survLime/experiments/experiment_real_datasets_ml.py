@@ -240,7 +240,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="veterans",
-        help="either veterans, lungs, udca or pbc, or all",
+        help="either veterans, lung, udca or all",
     )
     parser.add_argument(
         "--model", type=str, default="cox", help="bb model either cox or rsf"

@@ -94,7 +94,7 @@ if __name__ == "__main__":
         "--dataset",
         type=str,
         default="all",
-        help="either veterans, lungs, udca or pbc, or all",
+        help="either veterans, lung, udca or all",
     )
     parser.add_argument("--exp", default="all", type=str, help="Experiment name")
     parser.add_argument("--model", default="all", help="cox, rsf, xgb, deepsurv, deephit or all")
