@@ -11,7 +11,6 @@ from make_plots_script import (generate_plots_real_datasets,
                             generate_plot_single_point)
 from experiment_1_montecarlo import experiment_1_cluster_1
 from experiment_1_2_montecarlo import experiment_1_cluster_2
-from experiment_real_datasets_dl import exp_real_datasets_dl
 from experiment_real_datasets_ml import exp_real_datasets
 from deepsurv_rds import deepsurv_rds
 
@@ -20,29 +19,26 @@ if not os.path.exists('figures'):
 
 def execute_experiment(args):
     if args.exp == 'simulated':
-        #deepsurv_rds(args)
         experiment_1_cluster_1(args)
         experiment_1_cluster_2(args)
-        generate_deepmodels_rds_plots()
         generate_plots_simulated_experiments()
         generate_plot_single_point(cluster=1)
         generate_plot_single_point(cluster=2)
     elif args.exp == 'real':
         exp_real_datasets(args)
-      # exp_real_datasets_dl(args)
         generate_plots_real_datasets()
+    elif args.exp == 'dl':
+        deepsurv_rds(args)
+        generate_deepmodels_rds_plots()
     elif args.exp =="all":
         experiment_1_cluster_1(args)
         experiment_1_cluster_2(args)
-
+        exp_real_datasets(args)
+        deepsurv_rds(args)
         generate_plots_simulated_experiments()
         generate_plot_single_point(cluster=1)
         generate_plot_single_point(cluster=2)
-        exp_real_datasets(args)
-        exp_real_datasets_dl(args)
         generate_plots_real_datasets()
-
-        deepsurv_rds(args)
         generate_deepmodels_rds_plots()
     elif args.exp =='only_plot':
         generate_plots_simulated_experiments()
@@ -50,7 +46,6 @@ def execute_experiment(args):
         generate_plot_single_point(cluster=2)
         generate_plots_real_datasets()
         generate_deepmodels_rds_plots()
-
 
 
 class exp_params:
