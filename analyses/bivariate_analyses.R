@@ -1,4 +1,6 @@
-library(tidyverse)
+if (!require(require(tidyverse))) {
+  install.packages("tidyverse")
+}
 
 # UDCA ----
 data <- read.csv("udca_dataset.csv")
