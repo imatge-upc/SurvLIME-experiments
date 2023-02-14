@@ -1,10 +1,7 @@
 # Preliminary ----
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-if (!require(require(tidyverse))) {
-  install.packages("tidyverse")
-} else {
-  library("tidyverse")
-}
+install.packages(setdiff("tidyverse", rownames(installed.packages())))
+library("tidyverse")
 
 # UDCA ----
 data <- read.csv("udca_dataset.csv")
