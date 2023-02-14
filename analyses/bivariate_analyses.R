@@ -1,5 +1,9 @@
+# Preliminary ----
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 if (!require(require(tidyverse))) {
   install.packages("tidyverse")
+} else {
+  library("tidyverse")
 }
 
 # UDCA ----
