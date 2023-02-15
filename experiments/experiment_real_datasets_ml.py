@@ -191,8 +191,13 @@ def exp_real_datasets(args_org):
                 x.drop('inst', axis=1, inplace=True)
                 x.drop('meal.cal', axis=1, inplace=True)
                 x.dropna(inplace=True)
+            elif dataset=='udca':
+                x['event'] = events
+                x['time'] = times
+                x.dropna(inplace=True)
                 events = x.pop('event')
                 times = x.pop('time')
+            print(x.shape)
             train, test = loader.preprocess_datasets(x, events, times, random_seed=0)
 
             # Obtain model and compute c-index

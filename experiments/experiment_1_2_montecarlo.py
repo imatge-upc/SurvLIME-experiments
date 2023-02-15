@@ -53,10 +53,6 @@ def save_mid_experiment(coeff_max_distance, coeff_mean_distance, coeff_min_dista
     else:
         df_load_max = pd.read_csv(file_directory_max)
 
-    df_load_min = pd.read_csv(file_directory_min)
-    df_load_mean = pd.read_csv(file_directory_mean)
-    df_load_max = pd.read_csv(file_directory_max)
-
     df_min = pd.concat([df_load_min, df_to_save_min])
     df_mean = pd.concat([df_load_mean, df_to_save_mean])
     df_max = pd.concat([df_load_max, df_to_save_max])
