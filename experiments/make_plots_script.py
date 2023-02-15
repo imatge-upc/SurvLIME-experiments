@@ -11,6 +11,10 @@ from matplotlib.ticker import StrMethodFormatter
 
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics import mean_squared_error
+from sksurv.linear_model import CoxPHSurvivalAnalysis
+
+from survlimepy.load_datasets import Loader
+
 
 def change_name_simulated(name):
     if name=="min":
@@ -130,7 +134,7 @@ def generate_plots_simulated_experiments():
             p.set_title(title, fontsize= 18, fontweight="bold");
 
             fig_name = f"simulated_exp_cluster{i}_{group}_values.png"
-            fig_path = os.pardir("figures", fig_name)
+            fig_path = os.path.join("figures", fig_name)
             plt.savefig(fig_path,  bbox_inches="tight", dpi=200)
             print(f"Figure saved in {fig_path}")
     
@@ -239,6 +243,61 @@ def plot_experiment_1():
         fig_path = os.path.join("figures", fig_name)
         plt.savefig(fig_path, bbox_inches = "tight", dpi=200)
         print(f"Figure saved in {fig_path}")
+
+def compare_cox_weights_with_survlimepy():
+    results_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp_real_datasets")
+    datasets = ["veterans", "udca", "lung"]
+    print("-" * 50)
+    for dataset in datasets:
+        # Load and pre-process data
+        loader = Loader(dataset_name=dataset)
+        x, events, times = loader.load_data()
+        if dataset=='lung':
+            """
+            We remove the column meal.cal as it has many missing values
+            we remove any row with missing values of the LUNG dataset
+            """
+            x['event'] = events
+            x['time'] = times
+            x.drop('inst', axis=1, inplace=True)
+            x.drop('meal.cal', axis=1, inplace=True)
+            x.dropna(inplace=True)
+            events = x.pop('event')
+            times = x.pop('time')
+        elif dataset=='udca':
+            x['event'] = events
+            x['time'] = times
+            x.fillna(x.median(), inplace=True)
+            events = x.pop('event')
+            times = x.pop('time')
+        train, test = loader.preprocess_datasets(x, events, times, random_seed=0)
+        
+        model = CoxPHSurvivalAnalysis()
+        model.fit(train[0], train[1])
+        cox_weights = model.coef_
+
+        file_name = f"cox_exp_{dataset}_surv_weights.csv"
+        file_path = os.path.join(results_folder, file_name)
+        if os.path.exists(file_path):
+            data = pd.read_csv(file_path)
+        else:
+            raise ValueError(f"Experiments with real datasets have not been run yet. Please run the experiments first.")
+        for name, cox, survlime_weight in zip(model.feature_names_in_, cox_weights, data.median().values):
+            print(f' Feature name {name} | Cox weight: {cox:.4f} | SurvLIME weight: {survlime_weight:.4f}')
+        print("-" * 50)
+
+    # Results for the DeepSurv model in the RandomSurvival Dataset
+    results_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp_deepsurv_rds")
+    file_path = os.path.join(results_folder, "exp_deepsurv_rds_surv_weights.csv")
+    if os.path.exists(file_path):
+        data = pd.read_csv(file_path)
+    else:
+        raise ValueError(f"Experiments with real datasets have not been run yet. Please run the experiments first.")
+    data = pd.read_csv(file_path)
+    set_weights = [1e-6, 0.1, -0.15, 1e-6, 1e-6]
+    names = ['one', 'two', 'three', 'four', 'five']
+    for name, cox, survlime_weight in zip(names, set_weights, data.median().values):
+        print(f' Feature name {name} | Cox weight: {cox:.4f} | SurvLIME weight: {survlime_weight:.4f}')
 
 if __name__ == "__main__":
     # if directory figures does not exist create it
