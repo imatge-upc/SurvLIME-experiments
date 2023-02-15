@@ -6,12 +6,13 @@ library("tidyverse")
 # UDCA ----
 data <- read.csv("udca_dataset.csv")
 head(data)
-data$bili_cat <- cut_number(data$bili, 4)
-data$riskscore_cat <- cut_number(data$riskscore, 4)
+data_filtered <- data %>% 
+  drop_na()
+data_filtered$bili_cat <- cut_number(data_filtered$bili, 4)
+data_filtered$riskscore_cat <- cut_number(data_filtered$riskscore, 4)
 variables <- c("trt", "stage", "bili_cat", "riskscore_cat")
 for (var in variables) {
-  results <- data %>%
-    drop_na() %>% 
+  results <- data_filtered %>%
     group_by(across(all_of(var))) %>% 
     summarise(total=n(), event=sum(status), percentage_event = 100*sum(status)/n())  
   print(results)
@@ -29,17 +30,17 @@ data <- read.csv("lung_dataset.csv")
 data$status <- data$status - 1
 unique(data$inst)
 head(data)
-data$age_cat <- cut_number(data$age, 4)
-data$ph_karno_cat <- cut_number(data$ph.karno, 4)
-data$pat_karno_cat <- cut_number(data$pat.karno, 4)
-data$meal_cal_cat <- cut_number(data$meal.cal, 4)
-data$wt_loss_cat <- cut_number(data$wt.loss, 4)
+data_filtered <- data %>% 
+  select(-c(meal.cal, inst)) %>% 
+  drop_na() %>% 
+  filter(ph.ecog != "3")
+data_filtered$age_cat <- cut_number(data_filtered$age, 4)
+data_filtered$ph_karno_cat <- cut_number(data_filtered$ph.karno, 3)
+data_filtered$pat_karno_cat <- cut_number(data_filtered$pat.karno, 4)
+data_filtered$wt_loss_cat <- cut_number(data_filtered$wt.loss, 4)
 variables <- c("sex", "ph.ecog", "age_cat", "ph_karno_cat", "pat_karno_cat", "wt_loss_cat")
 for (var in variables) {
-  results <- data %>%
-    select(-c(meal.cal, inst)) %>% 
-    drop_na() %>% 
-    filter(ph.ecog != "3") %>% 
+  results <- data_filtered %>%
     group_by(across(all_of(var))) %>% 
     summarise(total=n(), event=sum(status), percentage_event = 100*sum(status)/n())
   print(results)
@@ -48,7 +49,7 @@ for (var in variables) {
 
 # Percentage of individuals that experience the event
 data %>%
-  select(-c(meal.cal, inst)) %>% 
+  select(-c(meal.cal, inst, meal_cal_cat)) %>% 
   drop_na() %>% 
   filter(ph.ecog != "3") %>% 
   select(status) %>% 
@@ -69,5 +70,6 @@ for (var in variables) {
   print("-----------")
 }
 
+# Percentage of individuals that experience the event
 data %>%
   summarise(mean(status))
