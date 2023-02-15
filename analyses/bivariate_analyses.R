@@ -18,6 +18,12 @@ for (var in variables) {
   print("-----------")
 }
 
+# Percentage of individuals that experience the event
+data %>%
+  drop_na() %>%
+  select(status) %>% 
+  summarise(mean(status))
+
 # LUNG ----
 data <- read.csv("lung_dataset.csv")
 data$status <- data$status - 1
@@ -40,6 +46,14 @@ for (var in variables) {
   print("-----------")
 }
 
+# Percentage of individuals that experience the event
+data %>%
+  select(-c(meal.cal, inst)) %>% 
+  drop_na() %>% 
+  filter(ph.ecog != "3") %>% 
+  select(status) %>% 
+  summarise(mean(status))
+
 # Veteran ----
 data <- read.csv("veteran.csv")
 data$celltype <- factor(data$celltype, levels = c("squamous", "smallcell", "adeno", "large"))
@@ -54,3 +68,6 @@ for (var in variables) {
   print(results)
   print("-----------")
 }
+
+data %>%
+  summarise(mean(status))
