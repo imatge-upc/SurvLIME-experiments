@@ -53,7 +53,7 @@ class exp_params:
     Class to store the hyper-parameters of the experiments for all the models
     """
     def __init__(self) -> None:
-        self.repetitions=100
+        self.repetitions=10
 
         self.lr = 0.01
         self.reg = 0.1
