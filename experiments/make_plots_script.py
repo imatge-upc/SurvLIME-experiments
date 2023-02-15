@@ -125,7 +125,7 @@ def generate_plots_simulated_experiments():
             p = create_boxenplot(data)
             name = change_name_simulated(group)
 
-            title = f"Cluster {i} {name} values"
+            title = f"Set {i} {name} values"
 
             p.set_title(title, fontsize= 18, fontweight="bold");
 
@@ -157,11 +157,11 @@ def generate_plot_single_point(cluster):
     data_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp2")
     if cluster == 1:
         file_name = "center_cluster_1.csv"
-        title = "Cluster 1: Values of the coefficients"
+        title = "Set 1: Values of the coefficients"
         fig_name = "center_cluster_1.png"
     else:
         file_name = "center_cluster_2.csv"
-        title = "Cluster 2: Values of the coefficients"
+        title = "Set 2: Values of the coefficients"
         fig_name = "center_cluster_2.png"
     file_path = os.path.join(data_folder, file_name)
     data = pd.read_csv(file_path, index_col=0)
@@ -218,17 +218,17 @@ def plot_experiment_1():
         # Plot the mean, best and worst performing values of all the repetitions in the form of boxen plots
         fig, ax= plt.subplots(1,3, figsize=(20,5), sharey=True)
         sns.boxenplot(x="variable", y="value", data=pd.melt(dfs_together_mean), ax=ax[0], palette="RdBu")
-        ax[0].set_title(f"Cluster {exp} mean values"); ax[0].tick_params(labelrotation=0); ax[0].xaxis.grid(True)
+        ax[0].set_title(f"Set {exp} mean values"); ax[0].tick_params(labelrotation=0); ax[0].xaxis.grid(True)
         ax[0].set_ylabel("SurvLIME value")
         ax[0].set_xlabel("Features")
 
         sns.boxenplot(x="variable", y="value", data=pd.melt(dfs_together_min), ax=ax[1],palette="RdBu")
-        ax[1].set_title(f"Cluster {exp} best values"); ax[1].tick_params(labelrotation=0); ax[1].xaxis.grid(True)
+        ax[1].set_title(f"Set {exp} best values"); ax[1].tick_params(labelrotation=0); ax[1].xaxis.grid(True)
         ax[1].set_xlabel("Features")
         ax[1].set_ylabel("SurvLIME value")
 
         sns.boxenplot(x="variable", y="value", data=pd.melt(dfs_together_max), ax=ax[2],palette="RdBu")
-        ax[2].set_title(f"Cluster {exp} worst values"); ax[2].tick_params(labelrotation=0); ax[2].xaxis.grid(True)
+        ax[2].set_title(f"Set {exp} worst values"); ax[2].tick_params(labelrotation=0); ax[2].xaxis.grid(True)
         ax[2].set_xlabel("Features")
         ax[2].set_ylabel("SurvLIME value")
 
