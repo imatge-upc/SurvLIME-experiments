@@ -132,7 +132,7 @@ def obtain_c_index(model_name, dataset, model, test, train):
 
 def models_and_datasets(args):
     if args.dataset == "all":
-        datasets = ["veterans", "udca", "lung"]  # we are missing pbc
+        datasets = ["veterans", "udca", "lung"]
     else:
         datasets = [args.dataset]
     if args.model == "all":
@@ -191,13 +191,14 @@ def exp_real_datasets(args_org):
                 x.drop('inst', axis=1, inplace=True)
                 x.drop('meal.cal', axis=1, inplace=True)
                 x.dropna(inplace=True)
+                events = x.pop('event')
+                times = x.pop('time')
             elif dataset=='udca':
                 x['event'] = events
                 x['time'] = times
-                x.dropna(inplace=True)
+                x.fillna(x.median(), inplace=True)
                 events = x.pop('event')
                 times = x.pop('time')
-            print(x.shape)
             train, test = loader.preprocess_datasets(x, events, times, random_seed=0)
 
             # Obtain model and compute c-index

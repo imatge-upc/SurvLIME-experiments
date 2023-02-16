@@ -8,7 +8,8 @@ import os
 from make_plots_script import (generate_plots_real_datasets,
                              generate_deepmodels_rds_plots,
                             generate_plots_simulated_experiments,
-                            generate_plot_single_point)
+                            generate_plot_single_point,
+   compare_cox_weights_with_survlimepy)
 from experiment_1_montecarlo import experiment_1_cluster_1
 from experiment_1_2_montecarlo import experiment_1_cluster_2
 from experiment_real_datasets_ml import exp_real_datasets
@@ -41,6 +42,8 @@ def execute_experiment(args):
         generate_plots_real_datasets()
         generate_deepmodels_rds_plots()
     elif args.exp =='only_plot':
+        compare_cox_weights_with_survlimepy()
+        generate_plots_real_datasets()
         generate_plots_simulated_experiments()
         generate_plot_single_point(cluster=1)
         generate_plot_single_point(cluster=2)
@@ -53,7 +56,7 @@ class exp_params:
     Class to store the hyper-parameters of the experiments for all the models
     """
     def __init__(self) -> None:
-        self.repetitions=10
+        self.repetitions=1 
 
         self.lr = 0.01
         self.reg = 0.1
@@ -98,6 +101,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--exp", default="all", type=str, help="Experiment name")
     parser.add_argument("--model", default="all", help="cox, rsf, xgb, deepsurv, deephit or all")
+    parser.add_argument("--repetitions", type=int, default=5, help="Number of repetitions")
     
     args = parser.parse_args()
     params = exp_params()
