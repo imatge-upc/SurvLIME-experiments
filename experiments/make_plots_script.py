@@ -283,7 +283,7 @@ def compare_cox_weights_with_survlimepy():
         else:
             raise ValueError(f"Experiments with real datasets have not been run yet. Please run the experiments first.")
         for name, cox, survlime_weight in zip(model.feature_names_in_, cox_weights, data.median().values):
-            print(f' Feature name {name} | Cox weight: {cox:.4f} | SurvLIME weight: {survlime_weight:.4f}')
+            print(f'Feature name {name}\nCox weight: {cox:.4f} | SurvLIME weight: {survlime_weight:.4f}')
         print("-" * 50)
 
     # Results for the DeepSurv model in the RandomSurvival Dataset
@@ -297,7 +297,8 @@ def compare_cox_weights_with_survlimepy():
     set_weights = [1e-6, 0.1, -0.15, 1e-6, 1e-6]
     names = ['one', 'two', 'three', 'four', 'five']
     for name, cox, survlime_weight in zip(names, set_weights, data.median().values):
-        print(f' Feature name {name} | Cox weight: {cox:.4f} | SurvLIME weight: {survlime_weight:.4f}')
+        print(f'Feature name {name}\nReal weight: {cox:.4f} | SurvLIME weight: {survlime_weight:.4f}')
+    print("-" * 50)
 
 if __name__ == "__main__":
     # if directory figures does not exist create it
