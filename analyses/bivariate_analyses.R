@@ -61,7 +61,8 @@ data$celltype <- factor(data$celltype, levels = c("squamous", "smallcell", "aden
 head(data)
 data$karno_cat <- cut_number(data$karno, 4)
 data$age_cat <- cut_number(data$age, 4)
-variables <- c("trt", "prior", "celltype", "karno_cat", "age_cat")
+data$diagtime_cat <- cut_number(data$diagtime, 4)
+variables <- c("trt", "prior", "celltype", "karno_cat", "age_cat", "diagtime_cat")
 for (var in variables) {
   results <- data %>%
     group_by(across(all_of(var))) %>% 
