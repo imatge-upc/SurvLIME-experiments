@@ -21,15 +21,25 @@ def obtain_fitted_model(X_1, delta_1, time_to_event_1):
     delta_train_1 = [delta_1[i] for i in idx_train_1]
     delta_test_1 = [delta_1[i] for i in idx_test_1]
     z_train_1 = [(d, t) for d, t in zip(delta_train_1, time_to_event_train_1)]
-    y_train_1 = np.array(z_train_1, dtype=[("delta", np.bool_), ("time_to_event", np.float32)])
+    y_train_1 = np.array(
+        z_train_1, dtype=[("delta", np.bool_), ("time_to_event", np.float32)]
+    )
     # Fit a Cox model
     cox = CoxPHSurvivalAnalysis()
     cox.fit(X_train_1, y_train_1)
     return X_test_1, X_train_1, cox, delta_train_1, time_to_event_train_1
 
 
-
-def save_mid_experiment(coeff_max_distance, coeff_mean_distance, coeff_min_distance, col_names, file_directory_max, file_directory_mean, file_directory_min, n_features_1):
+def save_mid_experiment(
+    coeff_max_distance,
+    coeff_mean_distance,
+    coeff_min_distance,
+    col_names,
+    file_directory_max,
+    file_directory_mean,
+    file_directory_min,
+    n_features_1,
+):
     coeff_min_distance_np = np.array(coeff_min_distance).reshape(-1, n_features_1)
     coeff_mean_distance_np = np.array(coeff_mean_distance).reshape(-1, n_features_1)
     coeff_max_distance_np = np.array(coeff_max_distance).reshape(-1, n_features_1)
@@ -62,14 +72,13 @@ def save_mid_experiment(coeff_max_distance, coeff_mean_distance, coeff_min_dista
     df_max.to_csv(file_directory_max, columns=col_names, index=False)
 
 
-
 def obtain_random_data():
     n_points_1 = 1000
-    true_coef_1 = [10**(-6), -0.15, 10**(-6), 10**(-6), -0.1]
+    true_coef_1 = [10 ** (-6), -0.15, 10 ** (-6), 10 ** (-6), -0.1]
     r_1 = 8
     center_1 = [4, -8, 2, 4, 2]
     prob_event_1 = 0.9
-    lambda_weibull_1 = 10**(-5)
+    lambda_weibull_1 = 10 ** (-5)
     v_weibull_1 = 2
     n_features_1 = len(true_coef_1)
 
@@ -85,7 +94,16 @@ def obtain_random_data():
     )
 
     X_1, time_to_event_1, delta_1 = rsd_1.random_survival_data(num_points=n_points_1)
-    return X_1, n_features_1, true_coef_1, time_to_event_1, delta_1, center_1, true_coef_1
+    return (
+        X_1,
+        n_features_1,
+        true_coef_1,
+        time_to_event_1,
+        delta_1,
+        center_1,
+        true_coef_1,
+    )
+
 
 data_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp2")
 file_name_min = "exp_2_cluster_2_min.csv"
@@ -97,7 +115,19 @@ file_directory_mean = os.path.join(data_folder, file_name_mean)
 file_directory_max = os.path.join(data_folder, file_name_max)
 file_directory_point = os.path.join(data_folder, file_name_point)
 
-def explain_point(point, train_features, train_events, train_times, unique_times, pred_fn, num_samples, real_coefficients, model_coefficients, feature_names):
+
+def explain_point(
+    point,
+    train_features,
+    train_events,
+    train_times,
+    unique_times,
+    pred_fn,
+    num_samples,
+    real_coefficients,
+    model_coefficients,
+    feature_names,
+):
     explainer = SurvLimeExplainer(
         training_features=train_features,
         training_events=train_events,
@@ -107,26 +137,43 @@ def explain_point(point, train_features, train_events, train_times, unique_times
     )
 
     b = explainer.explain_instance(
-            data_row=point,
-            predict_fn=pred_fn,
-            num_samples=num_samples,
-            verbose=False,
-        )
+        data_row=point,
+        predict_fn=pred_fn,
+        num_samples=num_samples,
+        verbose=False,
+    )
     data = np.empty((3, len(feature_names)))
     data[0] = real_coefficients
     data[1] = model_coefficients
     data[2] = b
-    data_pd = pd.DataFrame(data, index=["Real", "CoxPH", "SurvLIME"], columns=feature_names)
+    data_pd = pd.DataFrame(
+        data, index=["Real", "CoxPH", "SurvLIME"], columns=feature_names
+    )
     data_pd.to_csv(file_directory_point)
+
 
 def experiment_1_cluster_2(args):
     """
     Second experiment for the simulated data
     These experiments correspond to the section 4.1 of the paper
     """
-    X_1, n_features_1, true_coef_1, time_to_event_1, delta_1, center_1, cluster_coefficients = obtain_random_data()
+    (
+        X_1,
+        n_features_1,
+        true_coef_1,
+        time_to_event_1,
+        delta_1,
+        center_1,
+        cluster_coefficients,
+    ) = obtain_random_data()
 
-    X_test_1, X_train_1, cox, delta_train_1, time_to_event_train_1 = obtain_fitted_model(X_1, delta_1, time_to_event_1)
+    (
+        X_test_1,
+        X_train_1,
+        cox,
+        delta_train_1,
+        time_to_event_train_1,
+    ) = obtain_fitted_model(X_1, delta_1, time_to_event_1)
 
     # SurvLime for COX
     col_names = ["one", "two", "three", "four", "five"]
@@ -139,11 +186,22 @@ def experiment_1_cluster_2(args):
     coeff_mean_distance = []
     coeff_max_distance = []
     i_individual = 0
-    explain_point(center_1, X_train_1, delta_train_1, time_to_event_train_1, cox.event_times_, cox.predict_cumulative_hazard_function, num_samples, cluster_coefficients, cox.coef_, col_names)
+    explain_point(
+        center_1,
+        X_train_1,
+        delta_train_1,
+        time_to_event_train_1,
+        cox.event_times_,
+        cox.predict_cumulative_hazard_function,
+        num_samples,
+        cluster_coefficients,
+        cox.coef_,
+        col_names,
+    )
     while i_individual < total_test_1:
         print(f"Workin on individual {i_individual} out of {total_test_1}")
         B_individual = np.full(shape=(num_repetitions, n_features_1), fill_value=np.nan)
-        individual = X_test_1[i_individual] 
+        individual = X_test_1[i_individual]
         for i_sim in range(num_repetitions):
             explainer_cox = SurvLimeExplainer(
                 training_features=X_train_1,
@@ -170,10 +228,18 @@ def experiment_1_cluster_2(args):
         coeff_max_distance.append(b_max)
 
         if i_individual % 5 == 0 or i_individual == (total_test_1 - 1):
-            save_mid_experiment(coeff_max_distance, coeff_mean_distance, coeff_min_distance, col_names, file_directory_max, file_directory_mean, file_directory_min, n_features_1)
+            save_mid_experiment(
+                coeff_max_distance,
+                coeff_mean_distance,
+                coeff_min_distance,
+                col_names,
+                file_directory_max,
+                file_directory_mean,
+                file_directory_min,
+                n_features_1,
+            )
             coeff_min_distance = []
             coeff_mean_distance = []
             coeff_max_distance = []
             print(f"\tSaved individual {i_individual}")
         i_individual += 1
-

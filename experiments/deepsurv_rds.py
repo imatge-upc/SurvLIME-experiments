@@ -3,7 +3,7 @@ import numpy as np
 from survlimepy import SurvLimeExplainer
 from survlimepy.load_datasets import RandomSurvivalData
 import pandas as pd
-from pycox.models import CoxPH
+from pycox.models import CoxPH, DeepHitSingle
 from pycox.evaluation import EvalSurv
 import torchtuples as tt
 import argparse
@@ -53,7 +53,7 @@ def train_test_split(X_1, delta_1, time_to_event_1):
 
 
 
-def obtain_model(X_transformed_train, args):
+def obtain_model(X_transformed_train, y_train, args, model):
     in_features = X_transformed_train.shape[1]
     num_nodes = [args.num_nodes] * args.num_layers
     num_nodes = [32, 32]
@@ -65,11 +65,22 @@ def obtain_model(X_transformed_train, args):
 
     callbacks = [tt.callbacks.EarlyStopping(patience=10)]
 
+    if model =='deepsurv':
+        output_nodes = 1
+        labtrans = None
+    else:
+        num_durations = 15
+        labtrans = DeepHitSingle.label_transform(num_durations)
+        y_train = labtrans.fit_transform(*y_train)
+        output_nodes = labtrans.out_features
 
-    net_deep_surv = tt.practical.MLPVanilla(in_features, num_nodes, 1, batch_norm,dropout, output_bias=output_bias)
-    deep_surv = CoxPH(net_deep_surv, tt.optim.Adam())
+    net_deep_surv = tt.practical.MLPVanilla(in_features, num_nodes, output_nodes, batch_norm,dropout, output_bias=output_bias)
+    if model =='deepsurv':
+        deep_surv = CoxPH(net_deep_surv, tt.optim.Adam())
+    else:
+        deep_surv = DeepHitSingle(net_deep_surv, tt.optim.Adam(weight_decay=args.reg), duration_index=labtrans.cuts)
     deep_surv.optimizer.set_lr(args.lr)
-    return batch_size, deep_surv, epochs
+    return batch_size, deep_surv, epochs, labtrans
 
 
 
@@ -102,22 +113,28 @@ def deepsurv_rds(args):
     X_transformed_test, X_transformed_train, delta_test_1,\
              delta_train_1, time_to_event_test_1, time_to_event_train_1 = train_test_split(X_1, delta_1, time_to_event_1)
 
-    durations_test, events_test, y_deepsurv_train = obtain_targets(delta_test_1, delta_train_1, time_to_event_test_1, time_to_event_train_1)
+    
+    for model in ["deephit", "deepsurv"]:
+        durations_test, events_test, y_deepsurv_train = obtain_targets(delta_test_1, delta_train_1, time_to_event_test_1, time_to_event_train_1)
+        batch_size, deep_surv, epochs, labtrans = obtain_model(X_transformed_train, y_deepsurv_train, args, model)
+        
+        if model=='deephit':
+            y_deepsurv_train = labtrans.fit_transform(*y_deepsurv_train)
 
-    batch_size, deep_surv, epochs = obtain_model(X_transformed_train, args)
+        log = deep_surv.fit(
+            input=X_transformed_train,
+            target=y_deepsurv_train,
+            batch_size=batch_size,
+            epochs=epochs,
+            verbose=False
+        )
+        if model == 'deepsurv':
+            deep_surv.compute_baseline_hazards()
 
-    log = deep_surv.fit(
-        input=X_transformed_train,
-        target=y_deepsurv_train,
-        batch_size=batch_size,
-        epochs=epochs,
-        verbose=False
-    )
-    deep_surv.compute_baseline_hazards()
-
-    test_c_index, train_c_index = obtain_c_indexes(X_transformed_test, X_transformed_train, deep_surv, durations_test, events_test, y_deepsurv_train)
-    print("Train C-index: ", train_c_index)
-    print("Test C-index: ", test_c_index)
+        test_c_index, train_c_index = obtain_c_indexes(X_transformed_test, X_transformed_train, deep_surv, durations_test, events_test, y_deepsurv_train)
+        print(f"Model: {model}")
+        print("Train C-index: ", train_c_index)
+        print("Test C-index: ", test_c_index)
 
     def create_chf(fun):
         def inner(X):

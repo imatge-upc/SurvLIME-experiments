@@ -132,11 +132,11 @@ def obtain_c_index(model_name, dataset, model, test, train):
 
 def models_and_datasets(args):
     if args.dataset == "all":
-        datasets = ["veterans", "udca", "lung"]
+        datasets = ["udca", "veterans", "lung"]
     else:
         datasets = [args.dataset]
     if args.model == "all":
-        models = ["rsf", "xgb", "cox"]
+        models = ["rsf", "cox", "xgb"]
     else:
         models = []
         if "cox" in args.model:
@@ -178,64 +178,75 @@ def exp_real_datasets(args_org):
     for model_name in models:
         print("-" * 50)
         for dataset in datasets:
-            # Load and pre-process data
-            loader = Loader(dataset_name=dataset)
-            x, events, times = loader.load_data()
-            if dataset=='lung':
-                """
-                We remove the column meal.cal as it has many missing values
-                we remove any row with missing values of the LUNG dataset
-                """
-                x['event'] = events
-                x['time'] = times
-                x.drop('inst', axis=1, inplace=True)
-                x.drop('meal.cal', axis=1, inplace=True)
-                x.dropna(inplace=True)
-                events = x.pop('event')
-                times = x.pop('time')
-            elif dataset=='udca':
-                x['event'] = events
-                x['time'] = times
-                x.fillna(x.median(), inplace=True)
-                events = x.pop('event')
-                times = x.pop('time')
-            train, test = loader.preprocess_datasets(x, events, times, random_seed=0)
+            if dataset != "udca":
+                continue
+            else:
+                # Load and pre-process data
+                loader = Loader(dataset_name=dataset)
+                x, events, times = loader.load_data()
+                if dataset == "lung":
+                    """
+                    We remove the column meal.cal as it has many missing values
+                    we remove any row with missing values of the LUNG dataset
+                    """
+                    x["event"] = events
+                    x["time"] = times
+                    x.drop("inst", axis=1, inplace=True)
+                    x.drop("meal.cal", axis=1, inplace=True)
+                    x.dropna(inplace=True)
+                    events = x.pop("event")
+                    times = x.pop("time")
+                elif dataset == "udca":
+                    x["event"] = events
+                    x["time"] = times
+                    x.fillna(x.median(), inplace=True)
+                    events = x.pop("event")
+                    times = x.pop("time")
+                train, test = loader.preprocess_datasets(
+                    x, events, times, random_seed=0
+                )
 
-            # Obtain model and compute c-index
-            if model_name != "cox":
-                model_params = load_hyperparams(model_name, dataset)
+                # Obtain model and compute c-index
+                if model_name != "cox":
+                    model_params = load_hyperparams(model_name, dataset)
 
-                for val, name in zip(model_params.values(), model_params.keys()):
-                    setattr(args, name, val)
-            model, predict_chf, type_fn = obtain_model(args, model_name)
-            model.fit(train[0], train[1])
-            obtain_c_index(model_name, dataset, model, test, train)
-                
-            # Drop rows in the dataframe train[0] with 3 or more nan values
+                    for val, name in zip(model_params.values(), model_params.keys()):
+                        setattr(args, name, val)
+                if model_name == "rsf":
+                    pass
+                else:
+                    print(f"Model: {model_name} and dataset: {dataset}")
+                    model, predict_chf, type_fn = obtain_model(args, model_name)
+                    model.fit(train[0], train[1])
+                    obtain_c_index(model_name, dataset, model, test, train)
 
-
-            model_output_times = obtain_output_times(model_name, model)
-            events_train = [1 if x[0] else 0 for x in train[1]]
-            times_train = [x[1] for x in train[1]]
-            explainer = SurvLimeExplainer(
-                training_features=train[0],
-                training_events=[True if x == 1 else False for x in events_train],
-                training_times=times_train,
-                model_output_times=model_output_times,
-                random_state=10,
-            )
-            computation_exp = explainer.montecarlo_explanation(
-                data=test[0],
-                predict_fn=predict_chf,
-                type_fn=type_fn,
-                num_samples=1000,
-                num_repetitions=args.repetitions,
-            )
-            file_name = f"{model_name}_exp_{dataset}_surv_weights.csv"
-            file_directory = os.path.join(save_dir, file_name)
-            # transform computation_exp to dataframe
-            computation_exp = pd.DataFrame(computation_exp, columns=test[0].columns)
-            computation_exp.to_csv(file_directory, index=False)
+                    # Drop rows in the dataframe train[0] with 3 or more nan values
+                    model_output_times = obtain_output_times(model_name, model)
+                    events_train = [1 if x[0] else 0 for x in train[1]]
+                    times_train = [x[1] for x in train[1]]
+                    explainer = SurvLimeExplainer(
+                        training_features=train[0],
+                        training_events=[
+                            True if x == 1 else False for x in events_train
+                        ],
+                        training_times=times_train,
+                        model_output_times=model_output_times,
+                        random_state=10,
+                    )
+                    computation_exp = explainer.montecarlo_explanation(
+                        data=test[0],
+                        predict_fn=predict_chf,
+                        type_fn=type_fn,
+                        num_samples=1000,
+                        num_repetitions=args.repetitions,
+                    )
+                    file_name = f"{model_name}_exp_{dataset}_surv_weights.csv"
+                    file_directory = os.path.join(save_dir, file_name)
+                    # transform computation_exp to dataframe
+                    computation_exp = pd.DataFrame(
+                        computation_exp, columns=test[0].columns
+                    )
+                    computation_exp.to_csv(file_directory, index=False)
 
 
 if __name__ == "__main__":
@@ -288,4 +299,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     exp_real_datasets(args)
-
