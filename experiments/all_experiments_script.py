@@ -5,33 +5,36 @@ of the paper "SurvLIMEpy: A Python package implementing SurvLIME"
 import argparse
 import os
 
-from make_plots_script import (generate_plots_real_datasets,
-                             generate_deepmodels_rds_plots,
-                            generate_plots_simulated_experiments,
-                            generate_plot_single_point,
-   compare_cox_weights_with_survlimepy)
+from make_plots_script import (
+    generate_plots_real_datasets,
+    generate_deepmodels_rds_plots,
+    generate_plots_simulated_experiments,
+    generate_plot_single_point,
+    compare_cox_weights_with_survlimepy,
+)
 from experiment_1_montecarlo import experiment_1_cluster_1
 from experiment_1_2_montecarlo import experiment_1_cluster_2
 from experiment_real_datasets_ml import exp_real_datasets
 from deepsurv_rds import deepsurv_rds
 
-if not os.path.exists('figures'):
-    os.mkdir('figures')
+if not os.path.exists("figures"):
+    os.mkdir("figures")
+
 
 def execute_experiment(args):
-    if args.exp == 'simulated':
+    if args.exp == "simulated":
         experiment_1_cluster_1(args)
         experiment_1_cluster_2(args)
         generate_plots_simulated_experiments()
         generate_plot_single_point(cluster=1)
         generate_plot_single_point(cluster=2)
-    elif args.exp == 'real':
+    elif args.exp == "real":
         exp_real_datasets(args)
         generate_plots_real_datasets()
-    elif args.exp == 'dl':
+    elif args.exp == "dl":
         deepsurv_rds(args)
         generate_deepmodels_rds_plots()
-    elif args.exp =="all":
+    elif args.exp == "all":
         experiment_1_cluster_1(args)
         experiment_1_cluster_2(args)
         exp_real_datasets(args)
@@ -41,7 +44,7 @@ def execute_experiment(args):
         generate_plot_single_point(cluster=2)
         generate_plots_real_datasets()
         generate_deepmodels_rds_plots()
-    elif args.exp =='only_plot':
+    elif args.exp == "only_plot":
         compare_cox_weights_with_survlimepy()
         generate_plots_real_datasets()
         generate_plots_simulated_experiments()
@@ -55,15 +58,16 @@ class exp_params:
     """
     Class to store the hyper-parameters of the experiments for all the models
     """
+
     def __init__(self) -> None:
-        self.repetitions=1 
+        self.repetitions = 1
 
         self.lr = 0.01
         self.reg = 0.1
 
         self.gamma = 0.1
         self.min_child_weight = 1
-        self.aft_loss_distribution = 'normal'
+        self.aft_loss_distribution = "normal"
         self.aft_loss_distribution_scale = 1.0
 
         self.epochs = 100
@@ -84,14 +88,12 @@ class exp_params:
         self.min_samples_split = 5
         self.min_weight_fraction_leaf = 0.0
 
-        
+
 if __name__ == "__main__":
     """
     Main function to execute the experiments
     """
-    parser = argparse.ArgumentParser(
-        description="Choose the experiment"
-    )
+    parser = argparse.ArgumentParser(description="Choose the experiment")
 
     parser.add_argument(
         "--dataset",
@@ -100,9 +102,13 @@ if __name__ == "__main__":
         help="either veterans, lung, udca or all",
     )
     parser.add_argument("--exp", default="all", type=str, help="Experiment name")
-    parser.add_argument("--model", default="all", help="cox, rsf, xgb, deepsurv, deephit or all")
-    parser.add_argument("--repetitions", type=int, default=5, help="Number of repetitions")
-    
+    parser.add_argument(
+        "--model", default="all", help="cox, rsf, xgb, deepsurv, deephit or all"
+    )
+    parser.add_argument(
+        "--repetitions", type=int, default=5, help="Number of repetitions"
+    )
+
     args = parser.parse_args()
     params = exp_params()
     # add the arguments of the argument parser to the exp_params class
@@ -110,6 +116,3 @@ if __name__ == "__main__":
         setattr(params, arg, getattr(args, arg))
 
     execute_experiment(params)
-
-
-
