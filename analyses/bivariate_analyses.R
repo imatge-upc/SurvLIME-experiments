@@ -1,7 +1,16 @@
 # Preliminary ----
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-install.packages(setdiff("tidyverse", rownames(installed.packages())))
+
+if (!requireNamespace("tidyverse", quietly = TRUE)) {
+  install.packages("tidyverse")
+}
 library("tidyverse")
+
+if (!requireNamespace("rstudioapi", quietly = TRUE)) {
+  install.packages("rstudioapi")
+}
+library("rstudioapi")
+
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
 # UDCA ----
 data <- read.csv("udca_dataset.csv")
@@ -49,7 +58,7 @@ for (var in variables) {
 
 # Percentage of individuals that experience the event
 data %>%
-  select(-c(meal.cal, inst, meal_cal_cat)) %>% 
+  select(-c(meal.cal, inst)) %>% 
   drop_na() %>% 
   filter(ph.ecog != "3") %>% 
   select(status) %>% 
