@@ -81,6 +81,7 @@ def create_boxenplot(data):
         data=data_melt,
         color="grey",
         # palette=custom_pal,
+        k_depth = 4,
         ax=ax,
     )
     p.set_xlabel("Features", fontsize=16)
