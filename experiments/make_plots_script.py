@@ -1,5 +1,6 @@
 from tqdm import tqdm
 import os
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -103,7 +104,8 @@ def generate_plots_real_datasets():
         for model_type in models:
             file_name = f"{model_type}_exp_{dataset}_surv_weights.csv"
             file_path = os.path.join(results_folder, file_name)
-            try:
+            print(os.listdir(results_folder))
+            if file_name in os.listdir(results_folder):
                 data = pd.read_csv(file_path)
                 data = data.reindex(
                     data.median().sort_values(ascending=False).index, axis=1
@@ -128,8 +130,9 @@ def generate_plots_real_datasets():
                 fig_path = os.path.join("results", "figures", fig_name)
                 plt.savefig(fig_path, bbox_inches="tight", dpi=200)
                 print(f"Figure saved in {fig_path}")
-            except FileNotFoundError:
-                print(f"File {file_path} not found, compute experiment first")
+            else:
+                msg = f"File {file_path} not found, compute experiment first"
+                warnings.warn(msg)
 
 
 def generate_plots_simulated_experiments():
