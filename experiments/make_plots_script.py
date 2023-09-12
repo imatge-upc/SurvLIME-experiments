@@ -103,30 +103,33 @@ def generate_plots_real_datasets():
         for model_type in models:
             file_name = f"{model_type}_exp_{dataset}_surv_weights.csv"
             file_path = os.path.join(results_folder, file_name)
-            data = pd.read_csv(file_path)
-            data = data.reindex(
-                data.median().sort_values(ascending=False).index, axis=1
-            )
-            # if there is a columned named ph.ecog_2.0 rename it to ph.ecog_2
-            if "ph.ecog_2.0" in data.columns:
-                data.rename(
-                    columns={"ph.ecog_2.0": "ph.ecog_2", "ph.ecog_1.0": "ph.ecog_1"},
-                    inplace=True,
+            try:
+                data = pd.read_csv(file_path)
+                data = data.reindex(
+                    data.median().sort_values(ascending=False).index, axis=1
                 )
-            p = create_boxenplot(data)
+                # if there is a columned named ph.ecog_2.0 rename it to ph.ecog_2
+                if "ph.ecog_2.0" in data.columns:
+                    data.rename(
+                        columns={"ph.ecog_2.0": "ph.ecog_2", "ph.ecog_1.0": "ph.ecog_1"},
+                        inplace=True,
+                    )
+                p = create_boxenplot(data)
 
-            model_name = change_name(model_type)
-            dataset_name = change_dataset(dataset)
-            p.set_title(
-                f"{model_name} {dataset_name} SurvLIME values",
-                fontsize=16,
-                fontweight="bold",
-            )
+                model_name = change_name(model_type)
+                dataset_name = change_dataset(dataset)
+                p.set_title(
+                    f"{model_name} {dataset_name} SurvLIME values",
+                    fontsize=16,
+                    fontweight="bold",
+                )
 
-            fig_name = f"{model_type}_{dataset}.png"
-            fig_path = os.path.join("results", "figures", fig_name)
-            plt.savefig(fig_path, bbox_inches="tight", dpi=200)
-            print(f"Figure saved in {fig_path}")
+                fig_name = f"{model_type}_{dataset}.png"
+                fig_path = os.path.join("results", "figures", fig_name)
+                plt.savefig(fig_path, bbox_inches="tight", dpi=200)
+                print(f"Figure saved in {fig_path}")
+            except FileNotFoundError:
+                print(f"File {file_path} not found, compute experiment first")
 
 
 def generate_plots_simulated_experiments():
