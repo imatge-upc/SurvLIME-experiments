@@ -160,16 +160,29 @@ def deepsurv_rds(args):
         verbose=False,
     )
 
-    #import ipdb;ipdb.set_trace()
-    save_dir = os.path.join(os.getcwd(), "computed_weights_csv", "exp_deepsurv_rds")
+    results_folder = "results"
+    computed_weights_folder = os.path.join(results_folder, "computed_weights_csv")
+    save_dir = os.path.join(computed_weights_folder, "exp_deepsurv_rds")
+
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+
+    if not os.path.exists(computed_weights_folder):
+        os.makedirs(computed_weights_folder)
+    
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+
     file_name = f"exp_deepsurv_rds_surv_weights.csv"
     file_directory = os.path.join(save_dir, file_name)
+
     # transform computation_exp to dataframe
     print('end')
-    b_deepsurv_df = pd.DataFrame(b_deepsurv, columns=['one', 'two', 'three', 'four', 'five'])
+    b_deepsurv_df = pd.DataFrame(
+        b_deepsurv, columns=['one', 'two', 'three', 'four', 'five']
+    )
     b_deepsurv_df.to_csv(file_directory, index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

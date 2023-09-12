@@ -95,9 +95,7 @@ def create_boxenplot(data):
 
 
 def generate_plots_real_datasets():
-    results_folder = os.path.join(
-        os.getcwd(), "computed_weights_csv", "exp_real_datasets"
-    )
+    results_folder = os.path.join("results", "computed_weights_csv", "exp_real_datasets")
 
     models = ["cox", "rsf", "xgb"]  # "deepsurv","deephit"]
     datasets = ["lung", "veterans", "udca"]  # "pbc"
@@ -126,7 +124,7 @@ def generate_plots_real_datasets():
             )
 
             fig_name = f"{model_type}_{dataset}.png"
-            fig_path = os.path.join("figures", fig_name)
+            fig_path = os.path.join("results", "figures", fig_name)
             plt.savefig(fig_path, bbox_inches="tight", dpi=200)
             print(f"Figure saved in {fig_path}")
 
@@ -135,7 +133,7 @@ def generate_plots_simulated_experiments():
     for i in [1, 2]:
         for group in ["mean", "min", "max"]:
             name_file = f"exp_2_cluster_{i}_{group}.csv"
-            data_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp2")
+            data_folder = os.path.join("results", "computed_weights_csv", "exp2")
             file_path = os.path.join(data_folder, name_file)
 
             data = pd.read_csv(file_path)
@@ -148,7 +146,7 @@ def generate_plots_simulated_experiments():
             p.set_title(title, fontsize=18, fontweight="bold")
 
             fig_name = f"simulated_exp_cluster{i}_{group}_values.png"
-            fig_path = os.path.join("figures", fig_name)
+            fig_path = os.path.join("results", "figures", fig_name)
             plt.savefig(fig_path, bbox_inches="tight", dpi=200)
             print(f"Figure saved in {fig_path}")
 
@@ -158,9 +156,7 @@ def generate_deepmodels_rds_plots():
     This function generates the plots for the deepsurv_rds experiment
     and saves the result in the figures folder
     """
-    results_folder = os.path.join(
-        os.getcwd(), "computed_weights_csv", "exp_deepsurv_rds"
-    )
+    results_folder = os.path.join("results", "computed_weights_csv", "exp_deepsurv_rds")
     file_path = os.path.join(results_folder, "exp_deepsurv_rds_surv_weights.csv")
     data = pd.read_csv(file_path)
 
@@ -169,13 +165,13 @@ def generate_deepmodels_rds_plots():
     p.set_title(f"DeepSurv RSD SurvLIME values", fontsize=16, fontweight="bold")
 
     fig_name = "deepsurv_rds.png"
-    fig_path = os.path.join("figures", fig_name)
+    fig_path = os.path.join("results", "figures", fig_name)
     plt.savefig(fig_path, bbox_inches="tight", dpi=200)
     print(f"Figure saved in {fig_path}")
 
 
 def generate_plot_single_point(cluster):
-    data_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp2")
+    data_folder = os.path.join("results", "computed_weights_csv", "exp2")
     if cluster == 1:
         file_name = "center_cluster_1.csv"
         title = "Set 1: Values of the coefficients"
@@ -192,7 +188,7 @@ def generate_plot_single_point(cluster):
         title=title,
         fontsize=14,
     )
-    fig_path = os.path.join("figures", fig_name)
+    fig_path = os.path.join("results", "figures", fig_name)
     p.figure.savefig(fig_path, bbox_inches="tight")
 
 
@@ -298,9 +294,7 @@ def plot_experiment_1():
 
 
 def compare_cox_weights_with_survlimepy():
-    results_folder = os.path.join(
-        os.getcwd(), "computed_weights_csv", "exp_real_datasets"
-    )
+    results_folder = os.path.join("results", "computed_weights_csv", "exp_real_datasets")
     datasets = ["veterans", "udca", "lung"]
     print("-" * 50)
     for dataset in datasets:
@@ -350,9 +344,7 @@ def compare_cox_weights_with_survlimepy():
         print("-" * 50)
 
     # Results for the DeepSurv model in the RandomSurvival Dataset
-    results_folder = os.path.join(
-        os.getcwd(), "computed_weights_csv", "exp_deepsurv_rds"
-    )
+    results_folder = os.path.join("results", "computed_weights_csv", "exp_deepsurv_rds")
     file_path = os.path.join(results_folder, "exp_deepsurv_rds_surv_weights.csv")
     if os.path.exists(file_path):
         data = pd.read_csv(file_path)

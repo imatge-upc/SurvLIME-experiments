@@ -105,7 +105,9 @@ def obtain_random_data():
     )
 
 
-data_folder = os.path.join(os.getcwd(), "computed_weights_csv", "exp2")
+results_folder = "results"
+computed_weights_folder = os.path.join(results_folder, "computed_weights_csv")
+data_folder = os.path.join(computed_weights_folder, "exp2")
 file_name_min = "exp_2_cluster_2_min.csv"
 file_name_mean = "exp_2_cluster_2_mean.csv"
 file_name_max = "exp_2_cluster_2_max.csv"
@@ -157,6 +159,15 @@ def experiment_1_cluster_2(args):
     Second experiment for the simulated data
     These experiments correspond to the section 4.1 of the paper
     """
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+
+    if not os.path.exists(computed_weights_folder):
+        os.makedirs(computed_weights_folder)
+
+    if not os.path.exists(data_folder):
+        os.makedirs(data_folder)
+
     (
         X_1,
         n_features_1,

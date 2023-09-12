@@ -17,8 +17,14 @@ from experiment_1_2_montecarlo import experiment_1_cluster_2
 from experiment_real_datasets_ml import exp_real_datasets
 from deepsurv_rds import deepsurv_rds
 
-if not os.path.exists("figures"):
-    os.mkdir("figures")
+results_directory = "results"
+figures_directorty = os.path.join(results_directory, "figures")
+
+if not os.path.exists(results_directory):
+    os.mkdir(results_directory)
+
+if not os.path.exists(figures_directorty):
+    os.mkdir(figures_directorty)
 
 
 def execute_experiment(args):
