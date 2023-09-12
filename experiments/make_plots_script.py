@@ -104,7 +104,6 @@ def generate_plots_real_datasets():
         for model_type in models:
             file_name = f"{model_type}_exp_{dataset}_surv_weights.csv"
             file_path = os.path.join(results_folder, file_name)
-            print(os.listdir(results_folder))
             if file_name in os.listdir(results_folder):
                 data = pd.read_csv(file_path)
                 data = data.reindex(
